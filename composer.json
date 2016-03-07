@@ -1,0 +1,20 @@
+{
+	"name": "xini/silverstripe-section-io",
+	"description": "Integration of the section.io varnish cache",
+	"type": "silverstripe-module",
+	"license": "BSD-3-Clause",
+	"keywords": ["silverstripe", "caching", "vanish", "section.io"],
+	"homepage": "http://github.com/xini/silverstripe-section-io",
+	"authors": [{
+		"name": "Florian Thoma",
+		"homepage": "http://www.innoweb.com.au"
+	}],
+	"require":
+	{
+		"silverstripe/framework": "~3.1",
+		"silverstripe/cms": "~3.1"
+	},
+	"extra": {
+		"installer-name": "section-io"
+	}
+}
