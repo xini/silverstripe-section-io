@@ -23,14 +23,10 @@ Also see ToDo's below.
 ## Installation
 
 Either:
+
 1. Download or git clone the 'section-io' directory to your webroot, or;
-2. Using composer run the following in the command line:
-
-  composer require xini/silverstripe-section-io dev-master
-
+2. Using composer run the following in the command line: composer require xini/silverstripe-section-io dev-master
 3. Run dev/build (http://www.mysite.com/dev/build?flush=all)
-
-## Setup
 
 ## Known issues
 
