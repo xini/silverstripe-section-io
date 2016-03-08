@@ -22,11 +22,13 @@ Also see ToDo's below.
 
 ## Installation
 
-Either:
-
 1. Download or git clone the 'section-io' directory to your webroot, or;
 2. Using composer run the following in the command line: composer require xini/silverstripe-section-io dev-master
 3. Run dev/build (http://www.mysite.com/dev/build?flush=all)
+
+Caution:
+
+* HTTP::cache_age needs to be 0 (= default), otherwise the Vary header will be set to "Cookie, X-Forwarded-Protocol, User-Agent, Accept" which pretty much disables caching alltogether
 
 ## Known issues
 
