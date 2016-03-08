@@ -30,10 +30,8 @@ Caution:
 
 * HTTP::cache_age needs to be 0 (= default), otherwise the Vary header will be set to "Cookie, X-Forwarded-Protocol, User-Agent, Accept" which pretty much disables caching alltogether
 
-## Known issues
+## Known issues / ToDo
 
 * When a form page is requested and the security token is activated, a cookie is set and all subsequent requests for that user will not be cached because of the cookie. I was thinking about adding something like https://gist.github.com/owindsor/21b289d480d931d457c3, but I haven't tried that yet.
-
-## ToDo
-
+* For websites where users can login to the front end, a marker cookie needs to be set (e.g. Member.login_marker_cookie: 'sslogin') and the vcl needs to be changed to pass the request if that cookie is set 
 * build an extension to automatically flush the cache when pages are published, see http://www.silverstripe.org/community/forums/customising-the-cms/show/25052?start=8 (for a local varnish installation), https://lassekarstensen.wordpress.com/2014/06/03/what-happened-to-ban-url-in-varnish-4-0/ , https://www.smashingmagazine.com/2014/04/cache-invalidation-strategies-with-varnish-cache/ , http://stackoverflow.com/questions/11119786/varnish-purge-using-http-and-regex, http://foshttpcache.readthedocs.org/en/stable/varnish-configuration.html and https://www.varnish-cache.org/docs/4.0/users-guide/purging.html 
