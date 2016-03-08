@@ -36,4 +36,4 @@ Caution:
 
 ## ToDo
 
-* build an extension to automatically flush the cache when pages are published
+* build an extension to automatically flush the cache when pages are published, see http://www.silverstripe.org/community/forums/customising-the-cms/show/25052?start=8 (for a local varnish installation), https://lassekarstensen.wordpress.com/2014/06/03/what-happened-to-ban-url-in-varnish-4-0/ , https://www.smashingmagazine.com/2014/04/cache-invalidation-strategies-with-varnish-cache/ , http://stackoverflow.com/questions/11119786/varnish-purge-using-http-and-regex, http://foshttpcache.readthedocs.org/en/stable/varnish-configuration.html and https://www.varnish-cache.org/docs/4.0/users-guide/purging.html 
