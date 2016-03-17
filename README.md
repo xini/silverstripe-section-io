@@ -30,6 +30,17 @@ Caution:
 
 * HTTP::cache_age needs to be 0 (= default), otherwise the Vary header will be set to "Cookie, X-Forwarded-Protocol, User-Agent, Accept" which pretty much disables caching alltogether
 
+## Configuration
+
+### Front-end login
+
+If you want the cache to be disabled for logged in users, you can add the following to your config.yml:
+```
+Member:
+  login_marker_cookie: sslogin
+```
+If this is set, a session cookie called "sslogin" will be set to "1" whenever a user logs in.
+
 ## Known issues / ToDo
 
 * When a form page is requested and the security token is activated, a cookie is set and all subsequent requests for that user will not be cached because of the cookie. I was thinking about adding something like https://gist.github.com/owindsor/21b289d480d931d457c3, but I haven't tried that yet.

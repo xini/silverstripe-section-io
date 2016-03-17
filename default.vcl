@@ -43,6 +43,11 @@ sub vcl_recv {
 		return (pass);
 	}
 	
+	# check for login cookie
+	if ( req.http.Cookie ~ "sslogin=" ) {
+		return (pass);
+	}
+	
 	# remove tracking cookies
 	if (req.http.Cookie) {
 		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *__utm.=[^;]+;? *", "\1"); # standard ga cookies
