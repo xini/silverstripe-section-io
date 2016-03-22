@@ -101,9 +101,14 @@ class SectionIO extends Object implements Flushable {
 			$success = false;
 		}
 		$application_id = Config::inst()->get('SectionIO', 'application_id');
-		if (!$application_id || strlen($application_id) < 1) {
+		$application_ids = array();
+		if (!$application_id) {
 			SS_Log::log('Value for SectionIO.application_id needs to be configured.', SS_Log::WARN);
 			$success = false;
+		} else if (is_string($application_id)) {
+			$application_ids = preg_split("/[\s,]+/", $application_id);
+		} else if (is_array($application_id)) {
+			$application_ids = $application_id;
 		}
 		$environment_name = Config::inst()->get('SectionIO', 'environment_name');
 		if (!$environment_name || strlen($environment_name) < 1) {
@@ -129,60 +134,61 @@ class SectionIO extends Object implements Flushable {
 		// config loaded successfully
 		if ($success) {
 			
-			// build API URL: /account/{accountId}/application/{applicationId}/environment/{environmentName}/proxy/{proxyName}/state
-			$url = Controller::join_links(
-				$api_url,
-				'account',
-				$account_id,
-				'application',
-				$application_id,
-				'environment',
-				$environment_name,
-				'proxy',
-				$proxy_name,
-				'state'
-			);
+			foreach ($application_ids as $application_id) {
 			
-			// prepare API call
-			$fetch = new RestfulService (
-				$url,
-				0 // expiry time 0: do not cache the API call
-			);
-			// set basic auth
-			$fetch->basicAuth($username, $password);
-			// set query string (ban expression)
-			$fetch->setQueryString(array(
-				'banExpression' => $banExpression,
-			));
-			// prepare headers
-			$headers = array(
-				'Content-Type: application/json',
-				'Accept: application/json',
-			);
-			// prepare curl options for ssl verification
-			$cert = ini_get('curl.cainfo');
-			if (!$cert) {
-				$cert = BASE_PATH . '/' . SECTIONIO_BASE . '/cert/cacert.pem';
-			}
-			$options = array(
-				CURLOPT_SSL_VERIFYPEER => 1,
-				CURLOPT_SSL_VERIFYHOST => 2,
-				CURLOPT_CAINFO => $cert,
-			);
-			
-			// call API
-			$conn = $fetch->request(null, 'POST', null, $headers, $options);
-			
-			if ($conn->isError()) {
-				SS_Log::log("SectionIO::performFlush :: ".$conn->getStatusCode()." : ".$conn->getStatusDescription(), SS_Log::WARN);
-				$success = false;
+				// build API URL: /account/{accountId}/application/{applicationId}/environment/{environmentName}/proxy/{proxyName}/state
+				$url = Controller::join_links(
+					$api_url,
+					'account',
+					$account_id,
+					'application',
+					$application_id,
+					'environment',
+					$environment_name,
+					'proxy',
+					$proxy_name,
+					'state'
+				);
+				
+				// prepare API call
+				$fetch = new RestfulService (
+					$url,
+					0 // expiry time 0: do not cache the API call
+				);
+				// set basic auth
+				$fetch->basicAuth($username, $password);
+				// set query string (ban expression)
+				$fetch->setQueryString(array(
+					'banExpression' => $banExpression,
+				));
+				// prepare headers
+				$headers = array(
+					'Content-Type: application/json',
+					'Accept: application/json',
+				);
+				// prepare curl options for ssl verification
+				$cert = ini_get('curl.cainfo');
+				if (!$cert) {
+					$cert = BASE_PATH . '/' . SECTIONIO_BASE . '/cert/cacert.pem';
+				}
+				$options = array(
+					CURLOPT_SSL_VERIFYPEER => 1,
+					CURLOPT_SSL_VERIFYHOST => 2,
+					CURLOPT_CAINFO => $cert,
+				);
+				
+				// call API
+				$conn = $fetch->request(null, 'POST', null, $headers, $options);
+				
+				if ($conn->isError()) {
+					SS_Log::log("SectionIO::performFlush :: ".$conn->getStatusCode()." : ".$conn->getStatusDescription(), SS_Log::WARN);
+					$success = $success && false;
+				} else {
+					SS_Log::log("SectionIO::performFlush :: ban successful. application ID: ".$application_id."; ban expression: '".$banExpression."'", SS_Log::NOTICE);
+				}
 			}
 		}
-		
-		if ($success) {
-			SS_Log::log("SectionIO::performFlush :: ban successful with ban expression '".$banExpression."'", SS_Log::NOTICE);
-		}
-		
+				
 		return $success;
 		
 	}

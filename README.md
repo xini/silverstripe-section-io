@@ -64,6 +64,7 @@ Unfortunately the section.io API doesn't allow any auth method other than userna
 To configure different behaviour for different environments please use the default SS config options for [environment specific settings] (https://docs.silverstripe.org/en/3.3/developer_guides/configuration/configuration/#exclusionary-rules) or your mysite/_config.php file to set the config for a specific environment only. 
 If one of the settings is missing for an environment, the API will not be called and a warning will be logged. 
 
+For the application_id you can configure multiple applications using a comma saparated list of application IDs (e.g. `'1234,2345'`). This is useful if a single SilverStripe installation is accessible via multiple domains (e.g. in a multisite setup) and the cache for each domain is maintained in a seperate section.io application. When the cache for an object is flushed it is then flushed for all applications configured because we can't determine on what domain a certain asset is used.
 
 ### SiteTree flush strategy
 
