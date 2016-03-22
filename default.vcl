@@ -27,8 +27,8 @@ sub vcl_recv {
 		}
 	}	
 	
-	# remove cookies for static content
-	if (req.url ~ ".*\.(?:css|js|jpe?g|png|gif|ico|swf|flv|mp4|mov|f4v|mp3|aac|m4a|woff|eot|ttf|otf|svg)(?=\?|&|$)") {
+	# remove cookies for static content based on /assets/.htaccess
+	if (req.url ~ ".*\.(?:js|css|bmp|png|gif|jpg|jpeg|ico|pcx|tif|tiff|au|mid|midi|mpa|mp3|ogg|m4a|ra|wma|wav|cda|avi|mpg|mpeg|asf|wmv|m4v|mov|mkv|mp4|ogv|webm|swf|flv|ram|rm|doc|docx|txt|rtf|xls|xlsx|pages|ppt|pptx|pps|csv|cab|arj|tar|zip|zipx|sit|sitx|gz|tgz|bz2|ace|arc|pkg|dmg|hqx|jar|pdf|woff|eot|ttf|otf|svg)(?=\?|&|$)") {
 		unset req.http.Cookie;
 		return (hash);
 	}
@@ -53,7 +53,7 @@ sub vcl_recv {
 		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *__utm.=[^;]+;? *", "\1"); # standard ga cookies
 		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_dc_gtm_[A-Z0-9\-]+)=[^;]*", ""); # gtm cookies
 		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_ga)=[^;]*", ""); # gtm ga cookies
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(AUA[0-9]+)=[^;]*", ""); # avanser cookies
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(AUA[0-9]+)=[^;]*", ""); # avanser phone tracking cookies
 
 		if (req.http.Cookie == "") {
 			unset req.http.Cookie;
@@ -82,14 +82,22 @@ sub vcl_backend_response {
 	# and other mistakes your backend does.
 	
 	# cache static content
-	if (bereq.url ~ ".*\.(?:jpe?g|png|gif|ico|swf|flv|mp4|mov|f4v|mp3|aac|m4a)(?=\?|&|$)") {
-		set beresp.ttl = 2592000s; # The number of seconds to cache inside Varnish: 1 month
-		set beresp.http.Cache-Control = "public, max-age=2592000"; # The number of seconds to cache in browser: 1 month
-	}
-	if (bereq.url ~ ".*\.(?:css|js)(?=\?|&|$)") {
+	# css & js
+	if (bereq.url ~ ".*\.(?:css|js)(?=\?|&|$)") { 
 		set beresp.ttl = 604800s; # The number of seconds to cache inside Varnish: 1 week
 		set beresp.http.Cache-Control = "public, max-age=604800"; # The number of seconds to cache in browser: 1 week
 	}
+	# images, audio, video
+	if (bereq.url ~ ".*\.(?:bmp|png|gif|jpg|jpeg|ico|pcx|tif|tiff|au|mid|midi|mpa|mp3|ogg|m4a|ra|wma|wav|cda|avi|mpg|mpeg|asf|wmv|m4v|mov|mkv|mp4|ogv|webm|swf|flv|ram|rm)(?=\?|&|$)") {
+		set beresp.ttl = 2592000s; # The number of seconds to cache inside Varnish: 1 month
+		set beresp.http.Cache-Control = "public, max-age=2592000"; # The number of seconds to cache in browser: 1 month
+	}
+	# docs and archives
+	if (bereq.url ~ ".*\.(?:doc|docx|txt|rtf|xls|xlsx|pages|ppt|pptx|pps|csv|cab|arj|tar|zip|zipx|sit|sitx|gz|tgz|bz2|ace|arc|pkg|dmg|hqx|jar|pdf)(?=\?|&|$)") {
+		set beresp.ttl = 2592000s; # The number of seconds to cache inside Varnish: 1 month
+		set beresp.http.Cache-Control = "public, max-age=2592000"; # The number of seconds to cache in browser: 1 month
+	}
+	# fonts
 	if (bereq.url ~ ".*\.(?:woff|eot|ttf|otf|svg)(?=\?|&|$)") {
 		set beresp.ttl = 2592000s; # The number of seconds to cache inside Varnish: 1 month
 		set beresp.http.Cache-Control = "public, max-age=2592000"; # The number of seconds to cache in browser: 1 month
@@ -103,6 +111,11 @@ sub vcl_backend_response {
 	
 	# set grace period
 	set beresp.grace = 1d;
+	
+	### DO NOT CHANGE ###
+	# store url in cached object to use in ban()
+	set beresp.http.x-url = bereq.url;
+	
 }
 
 sub vcl_deliver {
@@ -117,6 +130,11 @@ sub vcl_deliver {
 	} else {
 		set resp.http.X-Cache = "MISS";
 	}
+	
+	### DO NOT CHANGE ###
+	# remove saved url from object before delivery
+	unset resp.http.x-url;
+	
 }
 
 sub vcl_hit {

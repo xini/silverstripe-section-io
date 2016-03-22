@@ -1,0 +1,10 @@
+---
+Name: sectionio
+---
+SiteTree:
+  extensions:
+    - SectionIOSiteTreeExtension
+File:
+  extensions:
+    - SectionIOFileExtension
+    

@@ -3,7 +3,7 @@
 	"description": "Integration of the section.io varnish cache",
 	"type": "silverstripe-module",
 	"license": "BSD-3-Clause",
-	"keywords": ["silverstripe", "caching", "vanish", "section.io"],
+	"keywords": ["silverstripe", "caching", "varnish", "section.io"],
 	"homepage": "http://github.com/xini/silverstripe-section-io",
 	"authors": [{
 		"name": "Florian Thoma",
