@@ -53,6 +53,7 @@ sub vcl_recv {
 		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *__utm.=[^;]+;? *", "\1"); # standard ga cookies
 		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_dc_gtm_[A-Z0-9\-]+)=[^;]*", ""); # gtm cookies
 		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_ga)=[^;]*", ""); # gtm ga cookies
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_gat)=[^;]*", ""); # legacy ga cookies
 		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(AUA[0-9]+)=[^;]*", ""); # avanser phone tracking cookies
 
 		if (req.http.Cookie == "") {
