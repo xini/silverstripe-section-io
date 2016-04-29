@@ -1,0 +1,13 @@
+inherit: true
+
+checks:
+  php:
+    code_rating: true
+    duplication: true
+
+tools:
+  external_code_coverage:
+    timeout: 600
+    
+filter:
+  paths: [code/*, tests/*]
