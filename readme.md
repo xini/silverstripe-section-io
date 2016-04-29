@@ -1,10 +1,10 @@
 # SilverStripe Section.io integration (Varnish Cache)
 
-[![Build Status](http://img.shields.io/travis/xini/silverstripe-soapserver.svg?style=flat-square)](https://travis-ci.org/xini/silverstripe-soapserver)
-[![Code Quality](http://img.shields.io/scrutinizer/g/xini/silverstripe-soapserver.svg?style=flat-square)](https://scrutinizer-ci.com/g/xini/silverstripe-soapserver)
-[![Code Coverage](http://img.shields.io/scrutinizer/coverage/g/xini/silverstripe-soapserver.svg?style=flat-square)](https://scrutinizer-ci.com/g/xini/silverstripe-soapserver)
-[![Version](http://img.shields.io/packagist/v/innoweb/silverstripe-soapserver.svg?style=flat-square)](https://packagist.org/packages/innoweb/silverstripe-soapserver)
-[![License](http://img.shields.io/packagist/l/innoweb/silverstripe-soapserver.svg?style=flat-square)](license.md)
+[![Build Status](http://img.shields.io/travis/xini/silverstripe-section-io.svg?style=flat-square)](https://travis-ci.org/xini/silverstripe-section-io)
+[![Code Quality](http://img.shields.io/scrutinizer/g/xini/silverstripe-section-io.svg?style=flat-square)](https://scrutinizer-ci.com/g/xini/silverstripe-section-io)
+[![Code Coverage](http://img.shields.io/scrutinizer/coverage/g/xini/silverstripe-section-io.svg?style=flat-square)](https://scrutinizer-ci.com/g/xini/silverstripe-section-io)
+[![Version](http://img.shields.io/packagist/v/innoweb/silverstripe-section-io.svg?style=flat-square)](https://packagist.org/packages/innoweb/silverstripe-section-io)
+[![License](http://img.shields.io/packagist/l/innoweb/silverstripe-section-io.svg?style=flat-square)](license.md)
 
 ## Overview
 
@@ -29,17 +29,19 @@ Install the module using composer:
 ```
 composer require xini/silverstripe-section-io dev-master
 ```
-or download or git clone the module into a ‘soapserver’ directory in your webroot.
+or download or git clone the module into a ‘section-io’ directory in your webroot.
 
 Then run dev/build.
 
 See [cocumentation](docs/en/index.md) for further details.
 
 ## License
+
 BSD 3-Clause License, see [License](license.md)
 
 ## Documentation
- * See [Documentation index](docs/en/index.md)
+
+See [Documentation index](docs/en/index.md)
 
 ## Known issues / ToDo
 
