@@ -23,12 +23,14 @@ class SectionIO extends Object implements Flushable
         if (Config::inst()->get('SectionIO', 'flush_on_dev_build')) {
             return static::flushAll();
         }
-        return null;
+
+        return;
     }
 
     public static function flushAll()
     {
         $exp = 'obj.http.x-url ~ /';
+
         return static::performFlush($exp);
     }
 
@@ -41,6 +43,7 @@ class SectionIO extends Object implements Flushable
                     .'_resampled/(.*)\-'.preg_quote($image->Name).'$"'; // resampled versions
             return static::performFlush($exp);
         }
+
         return false;
     }
 
@@ -52,6 +55,7 @@ class SectionIO extends Object implements Flushable
 
             return static::performFlush($exp);
         }
+
         return false;
     }
 
@@ -88,6 +92,7 @@ class SectionIO extends Object implements Flushable
                     break;
 
             }
+
             return static::performFlush($exp);
         }
 
@@ -107,15 +112,15 @@ class SectionIO extends Object implements Flushable
 
                 // prepare headers
                 $headers = static::getHeaders();
-                
+
                 // prepare curl options
                 $options = static::getOptions();
-                
+
                 // call API
                 $conn = $service->request(null, 'POST', null, $headers, $options);
 
                 if ($conn->isError()) {
-                    user_error('SectionIO::performFlush :: '.$conn->getStatusCode().' : '.$conn->getStatusDescription().' : '. $url, E_USER_WARNING);
+                    user_error('SectionIO::performFlush :: '.$conn->getStatusCode().' : '.$conn->getStatusDescription().' : '.$url, E_USER_WARNING);
                     $success = $success && false;
                 } else {
                     user_error('SectionIO::performFlush :: ban successful. url: '.$url."; ban expression: '".$banExpression."'", E_USER_NOTICE);
@@ -124,10 +129,12 @@ class SectionIO extends Object implements Flushable
         } else {
             user_error('SectionIO::performFlush :: no URLs loaded for ban.', E_USER_WARNING);
         }
+
         return $success;
     }
-    
-    protected static function getService($url, $banExpression) {
+
+    protected static function getService($url, $banExpression)
+    {
         // prepare API call
         $service = new RestfulService(
             $url,
@@ -141,10 +148,12 @@ class SectionIO extends Object implements Flushable
         $service->setQueryString(array(
             'banExpression' => $banExpression,
         ));
+
         return $service;
     }
-    
-    protected static function getOptions() {
+
+    protected static function getOptions()
+    {
         // prepare curl options for ssl verification
         $cert = static::getCertificates();
         $options = array(
@@ -152,31 +161,35 @@ class SectionIO extends Object implements Flushable
             CURLOPT_SSL_VERIFYHOST => 2,
             CURLOPT_CAINFO => $cert,
         );
+
         return $options;
     }
-    
-    protected static function getCertificates() {
+
+    protected static function getCertificates()
+    {
         $cert = ini_get('curl.cainfo');
         if (!$cert) {
             $cert = BASE_PATH.'/'.SECTIONIO_BASE.'/cert/cacert.pem';
         }
+
         return $cert;
     }
-    
-    protected static function getHeaders() {
+
+    protected static function getHeaders()
+    {
         $headers = array(
             'Content-Type: application/json',
             'Accept: application/json',
         );
+
         return $headers;
     }
-    
+
     protected static function getUrls()
     {
         $urls = array();
-        
+
         if (static::checkConfig()) {
-            
             $api_url = Config::inst()->get('SectionIO', 'api_url');
             $account_id = Config::inst()->get('SectionIO', 'account_id');
             $application_id = Config::inst()->get('SectionIO', 'application_id');
@@ -188,7 +201,7 @@ class SectionIO extends Object implements Flushable
             }
             $environment_name = Config::inst()->get('SectionIO', 'environment_name');
             $proxy_name = Config::inst()->get('SectionIO', 'proxy_name');
-        
+
             foreach ($application_ids as $appid) {
                 // build API URL: /account/{accountId}/application/{applicationId}/environment/{environmentName}/proxy/{proxyName}/state
                 $urls[] = Controller::join_links(
@@ -205,10 +218,12 @@ class SectionIO extends Object implements Flushable
                 );
             }
         }
+
         return $urls;
     }
-    
-    protected static function checkConfig() {
+
+    protected static function checkConfig()
+    {
         $success = true;
         // check config
         $api_url = Config::inst()->get('SectionIO', 'api_url');
@@ -222,7 +237,7 @@ class SectionIO extends Object implements Flushable
             $success = false;
         }
         $application_id = Config::inst()->get('SectionIO', 'application_id');
-        if (!isset($application_id) || (!is_array($application_id) && strlen((string)$application_id) < 1)) {
+        if (!isset($application_id) || (!is_array($application_id) && strlen((string) $application_id) < 1)) {
             user_error('Value for SectionIO.application_id needs to be configured.', E_USER_WARNING);
             $success = false;
         }
@@ -246,7 +261,7 @@ class SectionIO extends Object implements Flushable
             user_error('Value for SectionIO.password needs to be configured.', E_USER_WARNING);
             $success = false;
         }
+
         return $success;
     }
-    
 }
