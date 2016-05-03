@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.1.3]
+## [1.2.1]
+
+Fix version number in changelog (1.2.0 instead of 1.1.3)
+
+
+## [1.2.0]
 
 Change license and updates for SS module standard.
 
