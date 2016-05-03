@@ -9,7 +9,6 @@ php:
   - 5.4
   - 5.5
   - 5.6
-  - 7.0
 
 env:
   - DB=MYSQL CORE_RELEASE=3.1
@@ -28,8 +27,6 @@ matrix:
       env: DB=MYSQL CORE_RELEASE=3.3
     - php: 5.6
       env: DB=PGSQL CORE_RELEASE=3.3
-  allow_failures:
-    - php: 7.0
 
 before_script:
   - composer self-update || true
@@ -39,7 +36,7 @@ before_script:
   - composer install
 
 script:
-  - vendor/bin/phpunit --coverage-clover=coverage.clover section-io/tests
+  - vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover section-io/tests
 
 after_script:
   - wget https://scrutinizer-ci.com/ocular.phar
