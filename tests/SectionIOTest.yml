@@ -1,0 +1,27 @@
+Folder:
+  folder1:
+    Filename: assets/SectionTest/
+Image:
+  testImage:
+    Title: 'This is a image Title'
+    Filename: assets/SectionTest/test_image.png
+    Parent: =>Folder.folder1
+File:
+  testFile:
+    Title: 'This is a file title'
+    Filename: assets/SectionTest/test_document.pdf
+    Parent: =>Folder.folder1
+Page:
+  home:
+    Title: Home
+  about:
+    Title: 'About Us'
+  staff:
+    Title: Staff
+    URLSegment: my-staff
+    Parent: =>Page.about
+  ceo:
+    Title: CEO
+    Parent: =>Page.staff
+  contact:
+    Title: 'Contact Us'
