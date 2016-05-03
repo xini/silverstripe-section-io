@@ -3,8 +3,8 @@
 [![Build Status](http://img.shields.io/travis/xini/silverstripe-section-io.svg?style=flat-square)](https://travis-ci.org/xini/silverstripe-section-io)
 [![Code Quality](http://img.shields.io/scrutinizer/g/xini/silverstripe-section-io.svg?style=flat-square)](https://scrutinizer-ci.com/g/xini/silverstripe-section-io)
 [![Code Coverage](http://img.shields.io/scrutinizer/coverage/g/xini/silverstripe-section-io.svg?style=flat-square)](https://scrutinizer-ci.com/g/xini/silverstripe-section-io)
-[![Version](http://img.shields.io/packagist/v/innoweb/silverstripe-section-io.svg?style=flat-square)](https://packagist.org/packages/innoweb/silverstripe-section-io)
-[![License](http://img.shields.io/packagist/l/innoweb/silverstripe-section-io.svg?style=flat-square)](license.md)
+[![Version](http://img.shields.io/packagist/v/xini/silverstripe-section-io.svg?style=flat-square)](https://packagist.org/packages/xini/silverstripe-section-io)
+[![License](http://img.shields.io/packagist/l/xini/silverstripe-section-io.svg?style=flat-square)](license.md)
 
 ## Overview
 
