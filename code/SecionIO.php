@@ -120,14 +120,14 @@ class SectionIO extends Object implements Flushable
                 $conn = $service->request(null, 'POST', null, $headers, $options);
 
                 if ($conn->isError()) {
-                    user_error('SectionIO::performFlush :: '.$conn->getStatusCode().' : '.$conn->getStatusDescription().' : '.$url, E_USER_WARNING);
+                    SS_Log::log('SectionIO::performFlush :: '.$conn->getStatusCode().' : '.$conn->getStatusDescription().' : '.$url, SS_Log::ERR);
                     $success = $success && false;
                 } else {
-                    user_error('SectionIO::performFlush :: ban successful. url: '.$url."; ban expression: '".$banExpression."'", E_USER_NOTICE);
+                    SS_Log::log('SectionIO::performFlush :: ban successful. url: '.$url."; ban expression: '".$banExpression."'", SS_Log::ERR);
                 }
             }
         } else {
-            user_error('SectionIO::performFlush :: no URLs loaded for ban.', E_USER_WARNING);
+            SS_Log::log('SectionIO::performFlush :: no URLs loaded for ban.', SS_Log::ERR);
         }
 
         return $success;
@@ -228,37 +228,37 @@ class SectionIO extends Object implements Flushable
         // check config
         $api_url = Config::inst()->get('SectionIO', 'api_url');
         if (!isset($api_url) || strlen($api_url) < 1) {
-            user_error('Value for SectionIO.api_url needs to be configured.', E_USER_WARNING);
+            SS_Log::log('Value for SectionIO.api_url needs to be configured.', SS_Log::WARN);
             $success = false;
         }
         $account_id = Config::inst()->get('SectionIO', 'account_id');
         if (!isset($account_id) || strlen($account_id) < 1) {
-            user_error('Value for SectionIO.account_id needs to be configured.', E_USER_WARNING);
+            SS_Log::log('Value for SectionIO.account_id needs to be configured.', SS_Log::WARN);
             $success = false;
         }
         $application_id = Config::inst()->get('SectionIO', 'application_id');
         if (!isset($application_id) || (!is_array($application_id) && strlen((string) $application_id) < 1)) {
-            user_error('Value for SectionIO.application_id needs to be configured.', E_USER_WARNING);
+            SS_Log::log('Value for SectionIO.application_id needs to be configured.', SS_Log::WARN);
             $success = false;
         }
         $environment_name = Config::inst()->get('SectionIO', 'environment_name');
         if (!isset($environment_name) || strlen($environment_name) < 1) {
-            user_error('Value for SectionIO.environment_name needs to be configured.', E_USER_WARNING);
+            SS_Log::log('Value for SectionIO.environment_name needs to be configured.', SS_Log::WARN);
             $success = false;
         }
         $proxy_name = Config::inst()->get('SectionIO', 'proxy_name');
         if (!isset($proxy_name) || strlen($proxy_name) < 1) {
-            user_error('Value for SectionIO.proxy_name needs to be configured.', E_USER_WARNING);
+            SS_Log::log('Value for SectionIO.proxy_name needs to be configured.', SS_Log::WARN);
             $success = false;
         }
         $username = Config::inst()->get('SectionIO', 'username');
         if (!isset($username) || strlen($username) < 1) {
-            user_error('Value for SectionIO.username needs to be configured.', E_USER_WARNING);
+            SS_Log::log('Value for SectionIO.username needs to be configured.', SS_Log::WARN);
             $success = false;
         }
         $password = Config::inst()->get('SectionIO', 'password');
         if (!isset($password) || strlen($password) < 1) {
-            user_error('Value for SectionIO.password needs to be configured.', E_USER_WARNING);
+            SS_Log::log('Value for SectionIO.password needs to be configured.', SS_Log::WARN);
             $success = false;
         }
 
