@@ -10,6 +10,12 @@ backend default {
 	.port = "80";
 }
 
+include "section-features.vcl";
+
+# The following VMODs are available for use if required:
+#import geoip; # see https://github.com/varnish/libvmod-geoip
+#import header; # see https://github.com/varnish/libvmod-header
+
 sub vcl_recv {
 	# Happens before we check if we have this in cache already.
 	#
