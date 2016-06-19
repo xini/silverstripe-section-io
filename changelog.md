@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.2.3]
+
+* fix typo in SectionIO file name
+* fix logging
+* add include of default section features in defualt vcl file
+
 ## [1.2.2]
 
 * Use SS_Log::log() instead of user_error() in case config is not set or API calls fail
