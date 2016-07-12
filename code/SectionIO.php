@@ -104,32 +104,34 @@ class SectionIO extends Object implements Flushable
         $success = true;
         $urls = static::getUrls();
         // config loaded successfully
-        if ($urls) {
-            foreach ($urls as $url) {
+		if (static::checkConfig()) {
+			if (count($urls) > 0) {
+				foreach ($urls as $url) {
 
-                // get restful service object
-                $service = static::getService($url, $banExpression);
+					// get restful service object
+					$service = static::getService($url, $banExpression);
 
-                // prepare headers
-                $headers = static::getHeaders();
+					// prepare headers
+					$headers = static::getHeaders();
 
-                // prepare curl options
-                $options = static::getOptions();
+					// prepare curl options
+					$options = static::getOptions();
 
-                // call API
-                $conn = $service->request(null, 'POST', null, $headers, $options);
+					// call API
+					$conn = $service->request(null, 'POST', null, $headers, $options);
 
-                if ($conn->isError()) {
-                    SS_Log::log('SectionIO::performFlush :: '.$conn->getStatusCode().' : '.$conn->getStatusDescription().' : '.$url, SS_Log::ERR);
-                    $success = $success && false;
-                } else {
-                    SS_Log::log('SectionIO::performFlush :: ban successful. url: '.$url."; ban expression: '".$banExpression."'", SS_Log::NOTICE);
-                }
-            }
-        } else {
-            SS_Log::log('SectionIO::performFlush :: no URLs loaded for ban.', SS_Log::ERR);
-        }
-
+					if ($conn->isError()) {
+						SS_Log::log('SectionIO::performFlush :: '.$conn->getStatusCode().' : '.$conn->getStatusDescription().' : '.$url, SS_Log::ERR);
+						$success = $success && false;
+					} else {
+						SS_Log::log('SectionIO::performFlush :: ban successful. url: '.$url."; ban expression: '".$banExpression."'", SS_Log::NOTICE);
+					}
+				}
+			} else {
+				SS_Log::log('SectionIO::performFlush :: no URLs loaded for ban.', SS_Log::ERR);
+			}
+		}
+		
         return $success;
     }
 
