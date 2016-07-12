@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.2.4]
+
+* add statcounter cookie to default exclusion list (vcl file)
+* fix logging
+
 ## [1.2.3]
 
 * fix typo in SectionIO file name
