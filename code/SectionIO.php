@@ -257,8 +257,8 @@ class SectionIO extends Object implements Flushable
             $missing[] = 'SectionIO.password';
         }
         
-        if (count($missing) > 0) {
-            SS_Log::log('SectionIO:: config parameters mising: ' . implode(', ', $missing), SS_Log::WARN);
+        if (count($missing) > 0 && !Director::isDev()) {
+            SS_Log::log('SectionIO:: config parameters missing: ' . implode(', ', $missing), SS_Log::WARN);
             return false;
         }
         return true;
