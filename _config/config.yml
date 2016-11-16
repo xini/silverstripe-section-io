@@ -7,4 +7,10 @@ SiteTree:
 File:
   extensions:
     - SectionIOFileExtension
-    
+---
+Only:
+  classexists: 'UserDefinedForm_Controller'
+---
+UserDefinedForm_Controller:
+  extensions:
+    - SectionIOFormControllerExtension

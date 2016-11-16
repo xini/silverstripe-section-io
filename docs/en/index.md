@@ -9,19 +9,64 @@
 ### Default VCL
 
 The module contains a default vcl (Varnish Configuration Language) file you can use with this module. The file does the following:
+
 * clean up accept-encoding
 * remove cookies for static content (based on /assets/.htaccess)
 * pass requests for admin, Security and dev requests
 * pass requests for multistep forms
 * pass requests if the login marker cookie 'sslogin' is set
+* pass request if X-SS-Form header is present, otherwise remove cookies
 * remove most common tracking cookies
 * remove adwords gclid parameters
+* enforces the compression of svg files
 * set default cache time for static content and pages
 * set a grace period of one day (if content is expired it is still delivered from the cache for 1 day and reloaded in the background for subsequent requests)
+* option to enforce https (needs to be uncommented to be active)
+* adds protocol (http/https) to cache key
 
 It also saves the URL of an object to a temporary field `http.x-url` in `vcl_backend_response` and removes it again before delivering the object to the client in `vcl_deliver`. If you edit the file, these are the sections you shouldn't change for the module to work!
 
-### section.io API data
+### HTTP redirects
+
+To activate the HTTPS redirect included in the default vcl file, you need to un-comment the following lines in `vcl_recv`:
+```
+#	if (req.http.X-Forwarded-Proto !~ "(?i)https") {
+#		return (synth(750, ""));
+#	}
+```
+You also need to uncomment the `sub vcl_synth` at the end of the file.
+
+For the vcl to pick up the protocol, it needs an additional header in the response. You can add that by adding the following snippet to your .htaccess file on the origin server (the snipped also includes the redirection to HTTPS, which needs to be before the header code):
+```
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteBase /
+	# enforce https
+	RewriteCond %{HTTPS} off
+	RewriteRule ^(.*)$ https://www.your-domain.com/$1 [R=301,NC,L]
+</IfModule>
+<IfModule mod_headers.c>
+	Header append X-Forwarded-Proto https
+</IfModule>
+```
+
+This header gets picked up by the vcl to determine whther 
+
+### Forms
+
+When a form page is requested and the security token is activated, a cookie is set and all subsequent requests for that user will not be cached because of the cookie.
+
+To prevent that the module includes an extension for the `UserDefinedForm_Controller` that adds an HTTP header `X-SS-Form` to the response. When this header is set, the cookies are kept by the vcl and the request goes back to the origin server.
+
+If you build custom forms, you need to add the `SectionIOFormControllerExtension` to the controller managing your form:
+
+```
+YourForm_Controller:
+  extensions:
+    - SectionIOFormControllerExtension
+```
+
+### section.io API config
 
 You need to add the following to your config.yml: 
 
@@ -40,6 +85,7 @@ Go to the API section in your https://aperture.section.io/ application account. 
 Unfortunately the section.io API doesn't allow any auth method other than username and password. You can create a seperate user for your API calls, but that user would still have the same permissions as your main account. I have requested the introduction of something similar to deploy keys. (Status 03/2016) 
 
 To configure different behaviour for different environments please use the default SS config options for [environment specific settings] (https://docs.silverstripe.org/en/3.3/developer_guides/configuration/configuration/#exclusionary-rules) or your mysite/_config.php file to set the config for a specific environment only. 
+
 If one of the settings is missing for an environment, the API will not be called and a warning will be logged. 
 
 For the application_id you can configure multiple applications using a comma saparated list of application IDs (e.g. `'1234,2345'`). This is useful if a single SilverStripe installation is accessible via multiple domains (e.g. in a multisite setup) and the cache for each domain is maintained in a seperate section.io application. When the cache for an object is flushed it is then flushed for all applications configured because we can't determine on what domain a certain asset is used.

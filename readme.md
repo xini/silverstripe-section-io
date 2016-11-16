@@ -33,7 +33,7 @@ or download or git clone the module into a ‘section-io’ directory in your we
 
 Then run dev/build.
 
-See [cocumentation](docs/en/index.md) for further details.
+See [documentation](docs/en/index.md) for further details.
 
 ## License
 
@@ -41,8 +41,5 @@ BSD 3-Clause License, see [License](license.md)
 
 ## Documentation
 
-See [Documentation index](docs/en/index.md)
+See [documentation](docs/en/index.md)
 
-## Known issues / ToDo
-
-* When a form page is requested and the security token is activated, a cookie is set and all subsequent requests for that user will not be cached because of the cookie. I was thinking about adding something like https://gist.github.com/owindsor/21b289d480d931d457c3, but I haven't tried that yet.

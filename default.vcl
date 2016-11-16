@@ -10,8 +10,6 @@ backend default {
 	.port = "80";
 }
 
-include "section-features.vcl";
-
 # The following VMODs are available for use if required:
 #import geoip; # see https://github.com/varnish/libvmod-geoip
 #import header; # see https://github.com/varnish/libvmod-header
@@ -21,6 +19,12 @@ sub vcl_recv {
 	#
 	# Typically you clean up the request here, removing cookies you don't need,
 	# rewriting the request, etc.
+	
+	# https redirect
+	# also uncomment vcl_synth at the bottom!
+#	if (req.http.X-Forwarded-Proto !~ "(?i)https") {
+#		return (synth(750, ""));
+#	}
 	
 	# clean up accept-encoding
 	if (req.http.Accept-Encoding) {
@@ -34,37 +38,66 @@ sub vcl_recv {
 	}	
 	
 	# remove cookies for static content based on /assets/.htaccess
-	if (req.url ~ ".*\.(?:js|css|bmp|png|gif|jpg|jpeg|ico|pcx|tif|tiff|au|mid|midi|mpa|mp3|ogg|m4a|ra|wma|wav|cda|avi|mpg|mpeg|asf|wmv|m4v|mov|mkv|mp4|ogv|webm|swf|flv|ram|rm|doc|docx|txt|rtf|xls|xlsx|pages|ppt|pptx|pps|csv|cab|arj|tar|zip|zipx|sit|sitx|gz|tgz|bz2|ace|arc|pkg|dmg|hqx|jar|pdf|woff|eot|ttf|otf|svg)(?=\?|&|$)") {
+	if (req.url ~ ".*\.(?:js|css|bmp|png|gif|jpg|jpeg|ico|pcx|tif|tiff|au|mid|midi|mpa|mp3|ogg|m4a|ra|wma|wav|cda|avi|mpg|mpeg|asf|wmv|m4v|mov|mkv|mp4|ogv|webm|swf|flv|ram|rm|doc|docx|txt|rtf|xls|xlsx|pages|ppt|pptx|pps|csv|cab|arj|tar|zip|zipx|sit|sitx|gz|tgz|bz2|ace|arc|pkg|dmg|hqx|jar|pdf|woff|woff2|eot|ttf|otf|svg)(?=\?|&|$)") {
 		unset req.http.Cookie;
 		return (hash);
 	}
 	
-	# ss admin
-	if (req.url ~ "^/(Security|admin|dev)" || req.url ~ "stage=") {
-		return (pass);
-	}
-	
-	# ss multistep form
-	if( req.url ~ "MultiFormSessionID=" ) {
-		return (pass);
-	}
-	
-	# check for login cookie
-	if ( req.http.Cookie ~ "sslogin=" ) {
-		return (pass);
-	}
-	
-	# remove tracking cookies
-	if (req.http.Cookie) {
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *__utm.=[^;]+;? *", "\1"); # standard ga cookies
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_dc_gtm_[A-Z0-9\-]+)=[^;]*", ""); # gtm cookies
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_ga)=[^;]*", ""); # gtm ga cookies
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_gat)=[^;]*", ""); # legacy ga cookies
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(AUA[0-9]+)=[^;]*", ""); # avanser phone tracking cookies
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(sc_is_visitor_unique)=[^;]*", ""); # StatCounter web analytics
+	# remove cookies for admin and forms
+	if (
+		# Any HTTP POST request
+		!(req.method == "POST") &&
+		
+		# forms contained on page
+		!(req.http.X-SS-Form) &&
 
+		# Admin and dev URLs
+		!(req.url ~ "^/admin|Security|dev/") &&
+
+		# Staging/Previewing URLs while in /admin
+		!(req.url ~ "stage=") &&
+		
+		# ss multistep forms
+		!(req.url ~ "MultiFormSessionID=") &&
+		
+		# check for login cookie
+		!(req.http.Cookie ~ "sslogin=")
+
+	) {
+		unset req.http.Cookie;
+	}	
+	
+	# remove common tracking cookies
+	if (req.http.Cookie) {
+	
+		# Remove any Google Analytics based cookies
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *__utm.=[^;]+;? *", "\1");
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_dc_gtm_[A-Z0-9\-]+)=[^;]*", "");
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_ga)=[^;]*", "");
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_gat)=[^;]*", "");
+		
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *utmctr=[^;]+;? *", "\1");
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *utmcmd.=[^;]+;? *", "\1");
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *utmccn.=[^;]+;? *", "\1");
+		
+		# Remove DoubleClick offensive cookies
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *__gads.=[^;]+;? *", "\1");
+		
+		# Remove the Quant Capital cookies (added by some plugin, all __qca)
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *__qc.=[^;]+;? *", "\1");
+		
+		# Remove the AddThis cookies
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *__atuv.=[^;]+;? *", "\1");
+
+		# Remove the Avanser phone tracking cookies
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(AUA[0-9]+)=[^;]*", "");
+		
+		# Remove the StatCounter cookies
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(sc_is_visitor_unique)=[^;]*", "");
+
+		# remove empty cookie
 		if (req.http.Cookie == "") {
-			unset req.http.Cookie;
+			unset req.http.cookie;
 		}
 	}
 	
@@ -72,7 +105,16 @@ sub vcl_recv {
 	set req.url = regsuball(req.url,"\?gclid=[^&]+$",""); # strips when QS = "?gclid=AAA"
 	set req.url = regsuball(req.url,"\?gclid=[^&]+&","?"); # strips when QS = "?gclid=AAA&foo=bar"
 	set req.url = regsuball(req.url,"&gclid=[^&]+",""); # strips when QS = "?foo=bar&gclid=AAA" or QS = "?foo=bar&gclid=AAA&bar=baz"
+
+	# Strip hash, server doesn't need it.
+	if (req.url ~ "\#") {
+		set req.url = regsub(req.url, "\#.*$", "");
+	}
 	
+	# Strip a trailing ? if it exists
+	if (req.url ~ "\?$") {
+		set req.url = regsub(req.url, "\?$", "");
+	}
 }
 
 sub vcl_backend_fetch {
@@ -90,23 +132,27 @@ sub vcl_backend_response {
 	# and other mistakes your backend does.
 	
 	# cache static content
-	# css & js
+	# set cache control header for css & js
 	if (bereq.url ~ ".*\.(?:css|js)(?=\?|&|$)") { 
+		unset beresp.http.set-cookie;
 		set beresp.ttl = 604800s; # The number of seconds to cache inside Varnish: 1 week
 		set beresp.http.Cache-Control = "public, max-age=604800"; # The number of seconds to cache in browser: 1 week
 	}
-	# images, audio, video
+	# set cache control header for images, audio, video
 	if (bereq.url ~ ".*\.(?:bmp|png|gif|jpg|jpeg|ico|pcx|tif|tiff|au|mid|midi|mpa|mp3|ogg|m4a|ra|wma|wav|cda|avi|mpg|mpeg|asf|wmv|m4v|mov|mkv|mp4|ogv|webm|swf|flv|ram|rm)(?=\?|&|$)") {
+		unset beresp.http.set-cookie;
 		set beresp.ttl = 2592000s; # The number of seconds to cache inside Varnish: 1 month
 		set beresp.http.Cache-Control = "public, max-age=2592000"; # The number of seconds to cache in browser: 1 month
 	}
-	# docs and archives
+	# set cache control header for docs and archives
 	if (bereq.url ~ ".*\.(?:doc|docx|txt|rtf|xls|xlsx|pages|ppt|pptx|pps|csv|cab|arj|tar|zip|zipx|sit|sitx|gz|tgz|bz2|ace|arc|pkg|dmg|hqx|jar|pdf)(?=\?|&|$)") {
+		unset beresp.http.set-cookie;
 		set beresp.ttl = 2592000s; # The number of seconds to cache inside Varnish: 1 month
 		set beresp.http.Cache-Control = "public, max-age=2592000"; # The number of seconds to cache in browser: 1 month
 	}
-	# fonts
-	if (bereq.url ~ ".*\.(?:woff|eot|ttf|otf|svg)(?=\?|&|$)") {
+	# set cache control header for fonts
+	if (bereq.url ~ ".*\.(?:woff|woff2|eot|ttf|otf|svg)(?=\?|&|$)") {
+		unset beresp.http.set-cookie;
 		set beresp.ttl = 2592000s; # The number of seconds to cache inside Varnish: 1 month
 		set beresp.http.Cache-Control = "public, max-age=2592000"; # The number of seconds to cache in browser: 1 month
 	}
@@ -117,8 +163,13 @@ sub vcl_backend_response {
 		 set beresp.http.Cache-Control = "public, max-age=600";
     }
 	
+	# make sure svg files are compressed
+	if (beresp.http.content-type ~ "image/svg\+xml") {
+        set beresp.do_gzip = true;
+    }
+	
 	# set grace period
-	set beresp.grace = 1d;
+	set beresp.grace = 6h;
 	
 	### DO NOT CHANGE ###
 	# store url in cached object to use in ban()
@@ -139,9 +190,16 @@ sub vcl_deliver {
 		set resp.http.X-Cache = "MISS";
 	}
 	
+	# Remove some headers that give too much information about environment
+	unset resp.http.X-Powered-By;
+	unset resp.http.Server;
+	unset resp.http.X-Varnish;
+	unset resp.http.Via;
+	
 	### DO NOT CHANGE ###
-	# remove saved url from object before delivery
+	# remove saved url and protocol from object before delivery
 	unset resp.http.x-url;
+	unset resp.http.X-Forwarded-Proto;
 	
 }
 
@@ -157,3 +215,19 @@ sub vcl_hit {
 	# fetch new content
 	return (fetch);
 }
+
+# include protocol in cache key to prevent endless redirects
+sub vcl_hash {
+	if (req.http.X-Forwarded-Proto) {
+		hash_data(req.http.X-Forwarded-Proto);
+	}
+}
+
+# domain and https redirects
+#sub vcl_synth {
+#    if (resp.status == 750) {
+#        set resp.status = 301;
+#        set resp.http.Location = "https://" + req.http.host + req.url;
+#        return(deliver);
+#    }
+#}

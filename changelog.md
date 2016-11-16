@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.3.0]
+
+* add X-SS-Form header to user forms via extension that can be used for custom forms as well
+* add https redirect option to default.vcl (needs to be uncommented to be active)
+* improve handling of tracking cookies in default.vcl
+* update readme
+
+Please read the updated [documentation](docs/en/index.md).
+
+## [1.2.9]
+
+* update root certificate
+
+## [1.2.8]
+
+* update root certificate
+
+## [1.2.7]
+
+* update root certificate
+
 ## [1.2.6]
 
 * fix config warning
