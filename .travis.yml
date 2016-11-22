@@ -14,7 +14,8 @@ before_install:
   - pip install --user codecov
 
 env:
-  - DB=MYSQL CORE_RELEASE=3.4
+  - DB=MYSQL 
+  - CORE_RELEASE=3.4
   
   # Turn coverage off by default, as it's expensive time wise
   - COVERAGE=0
