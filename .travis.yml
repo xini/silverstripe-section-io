@@ -10,11 +10,22 @@ php:
   - 5.5
   - 5.6
 
+before_install:
+  - pip install --user codecov
+
 env:
-  - DB=MYSQL CORE_RELEASE=3.1
+  - DB=MYSQL CORE_RELEASE=3.4
+  
+  # Turn coverage off by default, as it's expensive time wise
+  - COVERAGE=0
+  
+  # The path of the module when installed by composer
+  - MODULE_PATH=section-io
 
 matrix:
   include:
+    - php: 5.6
+      env: DB=MYSQL COVERAGE=1
     - php: 5.6
       env: DB=MYSQL CORE_RELEASE=3.1
     - php: 5.6
@@ -29,15 +40,22 @@ matrix:
       env: DB=PGSQL CORE_RELEASE=3.3
 
 before_script:
+  - phpenv rehash
   - composer self-update || true
   - git clone git://github.com/silverstripe-labs/silverstripe-travis-support.git ~/travis-support
   - php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss
   - cd ~/builds/ss
-  - composer install
 
+#Execute tests with or without coverage
 script:
-  - vendor/bin/phpunit --coverage-clover=coverage.clover section-io/tests
+  # Execute tests with no coverage.
+  - "if [ \"$COVERAGE\" = \"0\" ]; then vendor/bin/phpunit $MODULE_PATH/tests/; fi"
+
+  # Execute tests with coverage.
+  - "if [ \"$COVERAGE\" = \"1\" ]; then vendor/bin/phpunit --coverage-clover=coverage.clover $MODULE_PATH/tests/; fi"
+
+after_script:
+  - "if [ \"$COVERAGE\" = \"1\" ]; then mv coverage.clover ~/build/$TRAVIS_REPO_SLUG/; fi"
+  - cd ~/build/$TRAVIS_REPO_SLUG
   - wget https://scrutinizer-ci.com/ocular.phar
-  - git remote rm origin
-  - git remote add origin git@github.com:xini/silverstripe-section-io.git
-  - php ocular.phar code-coverage:upload --format=php-clover coverage.clover
+  - "if [ \"$COVERAGE\" = \"1\" ]; then travis_retry codecov && travis_retry php ocular.phar code-coverage:upload --format=php-clover coverage.clover; fi"
