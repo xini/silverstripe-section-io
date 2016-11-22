@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.3.1]
+
+* update travis config
+* fix form detection in default.vcl
+
 ## [1.3.0]
 
 * add X-SS-Form header to user forms via extension that can be used for custom forms as well
