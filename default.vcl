@@ -43,57 +43,45 @@ sub vcl_recv {
 		return (hash);
 	}
 	
-	# remove cookies for admin and forms
+	# pass for admin and forms
 	if (
-		# Any HTTP POST request
-		!(req.method == "POST") &&
 		
-		# forms contained on page
-		!(req.http.X-SS-Form) &&
-
 		# Admin and dev URLs
-		!(req.url ~ "^/admin|Security|dev/") &&
+		(req.url ~ "^/admin|Security|dev/") ||
 
 		# Staging/Previewing URLs while in /admin
-		!(req.url ~ "stage=") &&
+		(req.url ~ "stage=") ||
 		
 		# ss multistep forms
-		!(req.url ~ "MultiFormSessionID=") &&
+		(req.url ~ "MultiFormSessionID=") ||
 		
 		# check for login cookie
-		!(req.http.Cookie ~ "sslogin=")
+		(req.http.Cookie ~ "sslogin=")
 
 	) {
-		unset req.http.Cookie;
+		return (pass);
 	}	
 	
-	# remove common tracking cookies
+	# remove common cookies
 	if (req.http.Cookie) {
 	
-		# Remove any Google Analytics based cookies
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *__utm.=[^;]+;? *", "\1");
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_dc_gtm_[A-Z0-9\-]+)=[^;]*", "");
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_ga)=[^;]*", "");
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_gat)=[^;]*", "");
+		# remove silverstripe cookies
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(cms-panel-collapsed-cms-menu)=[^;]*", "");
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(cms-menu-sticky)=[^;]*", "");
 		
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *utmctr=[^;]+;? *", "\1");
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *utmcmd.=[^;]+;? *", "\1");
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *utmccn.=[^;]+;? *", "\1");
+		# Remove any Google Analytics based cookies 
+		# (removes everything starting with an underscore, which also includes AddThis, DoubleClick and others)
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_[_a-zA-Z0-9\-]+)=[^;]*", "");
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(utm[a-z]+)=[^;]*", "");
 		
-		# Remove DoubleClick offensive cookies
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *__gads.=[^;]+;? *", "\1");
-		
-		# Remove the Quant Capital cookies (added by some plugin, all __qca)
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *__qc.=[^;]+;? *", "\1");
-		
-		# Remove the AddThis cookies
-		set req.http.Cookie = regsuball(req.http.Cookie, "(^|(?<=; )) *__atuv.=[^;]+;? *", "\1");
-
 		# Remove the Avanser phone tracking cookies
 		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(AUA[0-9]+)=[^;]*", "");
 		
 		# Remove the StatCounter cookies
 		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(sc_is_visitor_unique)=[^;]*", "");
+
+		# Remove a ";" prefix, if present.
+		set req.http.Cookie = regsub(req.http.Cookie, "^;\s*", "");
 
 		# remove empty cookie
 		if (req.http.Cookie == "") {
@@ -157,11 +145,27 @@ sub vcl_backend_response {
 		set beresp.http.Cache-Control = "public, max-age=2592000"; # The number of seconds to cache in browser: 1 month
 	}
 	
-	# set cache control header for pages
-    if (beresp.http.Content-Type ~ "^text/html" && !(bereq.url ~ "^/(Security|admin|dev)") && !(bereq.http.Cookie ~ "sslogin=") && !(beresp.http.Pragma ~ "no-cache") ) {
-		 set beresp.ttl = 3600s;
-		 set beresp.http.Cache-Control = "public, max-age=600";
-    }
+	# normal pages 
+    if (beresp.http.Content-Type ~ "^text/html"){
+		if (
+			(bereq.url ~ "^/(Security|admin|dev)") ||
+			(bereq.url ~ "stage=") ||
+			(bereq.url ~ "MultiFormSessionID=") ||
+			(bereq.http.Cookie ~ "sslogin=") ||
+			(beresp.http.X-SS-Form) ||
+			(beresp.http.Pragma ~ "(?i)no-cache") 
+		) {
+			# set admin and form pages to uncacheable
+			set beresp.uncacheable = true;
+			set beresp.ttl = 120s;
+		} else {
+			# if just normal page, set cache control headers
+			set beresp.ttl = 3600s;
+			set beresp.http.Cache-Control = "public, max-age=600";
+			# remove cookies
+			unset beresp.http.set-cookie;
+		}
+	}
 	
 	# make sure svg files are compressed
 	if (beresp.http.content-type ~ "image/svg\+xml") {
@@ -175,6 +179,9 @@ sub vcl_backend_response {
 	# store url in cached object to use in ban()
 	set beresp.http.x-url = bereq.url;
 	
+	# un-comment this to see in the X-Cookie-Debug header what cookies varnish still sees after cookie stripping in vcl_recv
+	#set beresp.http.X-Cookie-Debug = "Request cookie: " + bereq.http.Cookie;
+	
 }
 
 sub vcl_deliver {
@@ -182,6 +189,20 @@ sub vcl_deliver {
 	# response to the client.
 	#
 	# You can do accounting or modifying the final object here.
+	
+	# remove session cookie for non-form pages (when someone visits a form page all subsequent pages woulnd't be cached otherwise)
+	if (
+		(resp.http.Content-Type ~ "^text/html") &&
+		(req.http.Cookie) &&
+		!(req.url ~ "^/(Security|admin|dev)") &&
+		!(req.url ~ "stage=") &&
+		!(req.url ~ "MultiFormSessionID=") &&
+		!(req.method == "POST") &&
+		!(req.http.Cookie ~ "sslogin=") &&
+		!(resp.http.X-SS-Form)
+	) {
+		set resp.http.set-cookie = "PHPSESSID=deleted; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HttpOnly";
+	}
 	
 	# add cache response header
 	if (obj.hits > 0) {
