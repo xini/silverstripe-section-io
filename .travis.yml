@@ -14,15 +14,10 @@ before_install:
   - pip install --user codecov
 
 env:
-  global:
-    - DB=MYSQL 
-    - CORE_RELEASE=3.4
+  - DB=MYSQL CORE_RELEASE=3.4 COVERAGE=0
   
-    # Turn coverage off by default, as it's expensive time wise
-    - COVERAGE=0
-  
-    # The path of the module when installed by composer
-    - MODULE_PATH=section-io
+  # The path of the module when installed by composer
+  - MODULE_PATH=section-io
 
 matrix:
   include:
