@@ -100,7 +100,7 @@ class SectionIO extends Object implements Flushable
     
     public static function flushURL($url) {
         if ($url) {
-            $exp = 'obj.http.x-url ~ "^/'.preg_quote($url).'$"';
+            $exp = 'obj.http.x-url ~ "^'.preg_quote($url).'$"';
             return static::performFlush($exp);
         }
         return false;
