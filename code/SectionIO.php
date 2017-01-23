@@ -52,7 +52,6 @@ class SectionIO extends Object implements Flushable
         $file = File::get()->byID($fileID);
         if ($file && $file->exists()) {
             $exp = 'obj.http.x-url ~ "^/'.preg_quote($file->getFilename()).'$"';
-
             return static::performFlush($exp);
         }
 
@@ -96,6 +95,14 @@ class SectionIO extends Object implements Flushable
             return static::performFlush($exp);
         }
 
+        return false;
+    }
+    
+    public static function flushURL($url) {
+        if ($url) {
+            $exp = 'obj.http.x-url ~ "^/'.preg_quote($url).'$"';
+            return static::performFlush($exp);
+        }
         return false;
     }
 

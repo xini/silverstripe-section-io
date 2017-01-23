@@ -14,3 +14,11 @@ Only:
 UserDefinedForm_Controller:
   extensions:
     - SectionIOFormControllerExtension
+---
+Only:
+  classexists: 'DMSDocument'
+---
+DMSDocument:
+  extensions:
+    - SectionIODMSDocumentExtension
+    
