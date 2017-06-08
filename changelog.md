@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.4.3]
+
+* update root certificate
+
 ## [1.4.2]
 
 * change cookie exclusion regex in default.vcl for case where file name is in URL parameter (e.g. fileexists test in UploadField)
