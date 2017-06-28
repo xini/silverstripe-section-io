@@ -11,6 +11,8 @@ backend default {
 }
 
 # The following VMODs are available for use if required:
+import std; # see https://www.varnish-cache.org/docs/4.0/reference/vmod_std.generated.html
+#import uuid; # see https://github.com/Sharecare/libvmod-uuid
 #import geoip; # see https://github.com/varnish/libvmod-geoip
 #import header; # see https://github.com/varnish/libvmod-header
 
@@ -26,24 +28,7 @@ sub vcl_recv {
 #		return (synth(750, ""));
 #	}
 	
-	# clean up accept-encoding
-	if (req.http.Accept-Encoding) {
-		if (req.http.Accept-Encoding ~ "gzip") {
-			set req.http.Accept-Encoding = "gzip";
-		} else if (req.http.Accept-Encoding ~ "deflate") {
-			set req.http.Accept-Encoding = "deflate";
-		} else {
-			unset req.http.Accept-Encoding;
-		}
-	}	
-	
-	# remove cookies for static content based on /assets/.htaccess
-	if (req.url ~ "^[^?]*\.(?:js|css|bmp|png|gif|jpg|jpeg|ico|pcx|tif|tiff|au|mid|midi|mpa|mp3|ogg|m4a|ra|wma|wav|cda|avi|mpg|mpeg|asf|wmv|m4v|mov|mkv|mp4|ogv|webm|swf|flv|ram|rm|doc|docx|txt|rtf|xls|xlsx|pages|ppt|pptx|pps|csv|cab|arj|tar|zip|zipx|sit|sitx|gz|tgz|bz2|ace|arc|pkg|dmg|hqx|jar|pdf|woff|woff2|eot|ttf|otf|svg)(\?.*)?$") {
-		unset req.http.Cookie;
-		return (hash);
-	}
-	
-	# pass for admin and forms
+	# pass for admin, forms and logged in users
 	if (
 		
 		# Admin and dev URLs
@@ -60,7 +45,23 @@ sub vcl_recv {
 
 	) {
 		return (pass);
-	}	
+	}
+	
+	# add country code header
+	if (req.url ~ "(\?|\&)country=") {
+		# extract country parameter 
+		set req.http.X-Country-Code = regsub(req.url, "^.*(\?|\&)country=([^&]*).*$" , "\2");
+		# strip country parameter from backend request
+		set req.url = regsuball(req.url,"\?country=[^&]+$","");
+	} else {
+		set req.http.X-Country-Code = req.http.section-io-geo-country;
+	}
+
+	# remove cookies for static content based on /assets/.htaccess
+	if (req.http.Cookie && req.url ~ "^[^?]*\.(?:js|css|bmp|png|gif|jpg|jpeg|ico|pcx|tif|tiff|au|mid|midi|mpa|mp3|ogg|m4a|ra|wma|wav|cda|avi|mpg|mpeg|asf|wmv|m4v|mov|mkv|mp4|ogv|webm|swf|flv|ram|rm|doc|docx|txt|rtf|xls|xlsx|pages|ppt|pptx|pps|csv|cab|arj|tar|zip|zipx|sit|sitx|gz|tgz|bz2|ace|arc|pkg|dmg|hqx|jar|pdf|woff|woff2|eot|ttf|otf|svg)(\?.*)?$") {
+		unset req.http.Cookie;
+		return (hash);
+	}
 	
 	# remove common cookies
 	if (req.http.Cookie) {
@@ -103,6 +104,7 @@ sub vcl_recv {
 	if (req.url ~ "\?$") {
 		set req.url = regsub(req.url, "\?$", "");
 	}
+	
 }
 
 sub vcl_backend_fetch {
@@ -118,6 +120,11 @@ sub vcl_backend_response {
 	#
 	# Here you clean the response headers, removing silly Set-Cookie headers
 	# and other mistakes your backend does.
+	
+	# Don't cache 50x responses
+    if (beresp.status == 500 || beresp.status == 502 || beresp.status == 503 || beresp.status == 504) {
+      return (abandon);
+    }
 	
 	# cache static content
 	# set cache control header for css & js
@@ -155,7 +162,7 @@ sub vcl_backend_response {
 			(beresp.http.X-SS-Form) ||
 			(beresp.http.Pragma ~ "(?i)no-cache") 
 		) {
-			# set admin and form pages to uncacheable
+			# set admin and form pages to uncacheable (hit-for-pass)
 			set beresp.uncacheable = true;
 			set beresp.ttl = 120s;
 		} else {
@@ -224,23 +231,14 @@ sub vcl_deliver {
 	
 }
 
-sub vcl_hit {
-	# deliver if ttl > 0, normal hit
-	if (obj.ttl >= 0s) {
-		return (deliver);
-	}
-	# deliver if ttl = 0 but grace still on
-	if (obj.ttl + obj.grace > 0s) {
-		return (deliver);
-	}
-	# fetch new content
-	return (fetch);
-}
-
-# include protocol in cache key to prevent endless redirects
 sub vcl_hash {
+    # add protocol to cache key
 	if (req.http.X-Forwarded-Proto) {
 		hash_data(req.http.X-Forwarded-Proto);
+	}
+	# add country code to cache key
+	if (req.http.X-Country-Code) {
+	    hash_data(req.http.X-Country-Code);
 	}
 }
 
