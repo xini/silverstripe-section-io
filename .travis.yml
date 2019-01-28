@@ -10,54 +10,34 @@ before_install:
 env:
   global:
     - DB=MYSQL 
-    - CORE_RELEASE=3.4
   
     # Turn coverage off by default, as it's expensive time wise
     - COVERAGE=0
   
-    # The path of the module when installed by composer
-    - MODULE_PATH=section-io
-
 matrix:
   include:
-    - php: 5.6
-      env: DB=MYSQL COVERAGE=1
-    - php: 5.6
-      env: DB=MYSQL CORE_RELEASE=3.1
-    - php: 5.6
-      env: DB=PGSQL CORE_RELEASE=3.1
-    - php: 5.6
-      env: DB=MYSQL CORE_RELEASE=3.2
-    - php: 5.6
-      env: DB=PGSQL CORE_RELEASE=3.2
-    - php: 5.6
-      env: DB=MYSQL CORE_RELEASE=3.3
-    - php: 5.6
-      env: DB=PGSQL CORE_RELEASE=3.3
-    - php: 5.3
-      env: DB=MYSQL CORE_RELEASE=3.1
     - php: 5.4
-      env: DB=MYSQL CORE_RELEASE=3.2
-    - php: 5.5
-      env: DB=MYSQL CORE_RELEASE=3.3
+      env: DB=MYSQL CORE_RELEASE=3.5
+    - php: 5.6
+      env: DB=MYSQL CORE_RELEASE=3
+    - php: 5.6
+      env: DB=MYSQL CORE_RELEASE=3.5
+    - php: 7.1
+      env: DB=MYSQL CORE_RELEASE=3.6
+    - php: 7.2
+      env: DB=MYSQL CORE_RELEASE=3.7 COVERAGE=1
 
 before_script:
-  - phpenv rehash
-  - composer self-update || true
-  - git clone git://github.com/silverstripe-labs/silverstripe-travis-support.git ~/travis-support
+  - git clone git://github.com/silverstripe/silverstripe-travis-support.git ~/travis-support
   - php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss
   - cd ~/builds/ss
 
 #Execute tests with or without coverage
 script:
-  # Execute tests with no coverage.
-  - "if [ \"$COVERAGE\" = \"0\" ]; then vendor/bin/phpunit $MODULE_PATH/tests/; fi"
-
-  # Execute tests with coverage.
-  - "if [ \"$COVERAGE\" = \"1\" ]; then vendor/bin/phpunit --coverage-clover=coverage.clover $MODULE_PATH/tests/; fi"
-
+  - vendor/bin/phpunit --coverage-clover coverage.clover section-io/tests
+  
 after_script:
-  - "if [ \"$COVERAGE\" = \"1\" ]; then mv coverage.clover ~/build/$TRAVIS_REPO_SLUG/; fi"
+  - mv coverage.clover ~/build/$TRAVIS_REPO_SLUG/
   - cd ~/build/$TRAVIS_REPO_SLUG
   - wget https://scrutinizer-ci.com/ocular.phar
-  - "if [ \"$COVERAGE\" = \"1\" ]; then travis_retry codecov && travis_retry php ocular.phar code-coverage:upload --format=php-clover coverage.clover; fi"
+  - php ocular.phar code-coverage:upload --format=php-clover coverage.clover
