@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.6.0]
+
+* replace default certificate with `verify_ssl` config flag for local development environment 
+
 ## [1.5.0]
 
 * add section.io geo location header in default vcl

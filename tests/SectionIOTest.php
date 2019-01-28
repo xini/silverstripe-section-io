@@ -17,6 +17,7 @@ class SectionIOTest extends SapphireTest
         Config::inst()->update('SectionIO', 'proxy_name', 'myproxy');
         Config::inst()->update('SectionIO', 'username', 'someuser');
         Config::inst()->update('SectionIO', 'password', 'MySafePassword');
+        Config::inst()->update('SectionIO', 'verify_ssl', false);
 
         // remove extensions otherwise the fixtures will break the tests (by calling the live flush)
         File::remove_extension('SectionIOFileExtension');

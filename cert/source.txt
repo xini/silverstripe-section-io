@@ -1,1 +1,0 @@
-https://curl.haxx.se/ca/cacert.pem

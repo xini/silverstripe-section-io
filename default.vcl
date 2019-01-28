@@ -28,6 +28,20 @@ sub vcl_recv {
 #		return (synth(750, ""));
 #	}
 	
+	# add country code header
+	if (req.url ~ "(\?|\&)country=") {
+		# extract country parameter 
+		set req.http.X-Country-Code = regsub(req.url, "^.*(\?|\&)country=([^&]*).*$" , "\2");
+		# strip country parameter from backend request
+		set req.url = regsuball(req.url,"\?country=[^&]+$","");
+	} else if (req.http.section-io-geo-country-code) {
+		set req.http.X-Country-Code = req.http.section-io-geo-country-code;
+	} else if (req.http.section-io-geo-country) {
+		set req.http.X-Country-Code = req.http.section-io-geo-country;
+	} else if (req.http.geoip.country_code2) {
+	    set req.http.X-Country-Code = req.http.geoip.country_code2;
+	}
+
 	# pass for admin, forms and logged in users
 	if (
 		
@@ -47,16 +61,6 @@ sub vcl_recv {
 		return (pass);
 	}
 	
-	# add country code header
-	if (req.url ~ "(\?|\&)country=") {
-		# extract country parameter 
-		set req.http.X-Country-Code = regsub(req.url, "^.*(\?|\&)country=([^&]*).*$" , "\2");
-		# strip country parameter from backend request
-		set req.url = regsuball(req.url,"\?country=[^&]+$","");
-	} else {
-		set req.http.X-Country-Code = req.http.section-io-geo-country;
-	}
-
 	# remove cookies for static content based on /assets/.htaccess
 	if (req.http.Cookie && req.url ~ "^[^?]*\.(?:js|css|bmp|png|gif|jpg|jpeg|ico|pcx|tif|tiff|au|mid|midi|mpa|mp3|ogg|m4a|ra|wma|wav|cda|avi|mpg|mpeg|asf|wmv|m4v|mov|mkv|mp4|ogv|webm|swf|flv|ram|rm|doc|docx|txt|rtf|xls|xlsx|pages|ppt|pptx|pps|csv|cab|arj|tar|zip|zipx|sit|sitx|gz|tgz|bz2|ace|arc|pkg|dmg|hqx|jar|pdf|woff|woff2|eot|ttf|otf|svg)(\?.*)?$") {
 		unset req.http.Cookie;
@@ -122,7 +126,7 @@ sub vcl_backend_response {
 	# and other mistakes your backend does.
 	
 	# Don't cache 50x responses
-    if (beresp.status == 500 || beresp.status == 502 || beresp.status == 503 || beresp.status == 504) {
+    if (beresp.status >= 500 && beresp.status <= 599) {
       return (abandon);
     }
 	
@@ -159,16 +163,16 @@ sub vcl_backend_response {
 			(bereq.url ~ "stage=") ||
 			(bereq.url ~ "MultiFormSessionID=") ||
 			(bereq.http.Cookie ~ "sslogin=") ||
-			(beresp.http.X-SS-Form) ||
-			(beresp.http.Pragma ~ "(?i)no-cache") 
+			(beresp.http.X-SS-Form) 
 		) {
 			# set admin and form pages to uncacheable (hit-for-pass)
 			set beresp.uncacheable = true;
 			set beresp.ttl = 120s;
 		} else {
 			# if just normal page, set cache control headers
+		    unset beresp.http.expires;
+		    set beresp.http.Cache-Control = "max-age=600,public";
 			set beresp.ttl = 3600s;
-			set beresp.http.Cache-Control = "public, max-age=600";
 			# remove cookies
 			unset beresp.http.set-cookie;
 		}
@@ -180,7 +184,7 @@ sub vcl_backend_response {
     }
 	
 	# set grace period
-	set beresp.grace = 6h;
+	set beresp.grace = 24h;
 	
 	### DO NOT CHANGE ###
 	# store url in cached object to use in ban()

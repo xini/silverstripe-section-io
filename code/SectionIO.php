@@ -13,6 +13,7 @@ class SectionIO extends Object implements Flushable
     private static $proxy_name = '';
     private static $username = '';
     private static $password = '';
+    private static $verify_ssl = true;
 
     /**
      * Implementation of Flushable::flush()
@@ -164,24 +165,13 @@ class SectionIO extends Object implements Flushable
     protected static function getOptions()
     {
         // prepare curl options for ssl verification
-        $cert = static::getCertificates();
-        $options = array(
-            CURLOPT_SSL_VERIFYPEER => 1,
-            CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_CAINFO => $cert,
-        );
-
-        return $options;
-    }
-
-    protected static function getCertificates()
-    {
-        $cert = ini_get('curl.cainfo');
-        if (!$cert) {
-            $cert = BASE_PATH.'/'.SECTIONIO_BASE.'/cert/cacert.pem';
+        if (Config::inst()->get('SectionIO', 'verify_ssl')) {
+            return array(
+                CURLOPT_SSL_VERIFYPEER => 0,
+                CURLOPT_SSL_VERIFYHOST => 0,
+            );
         }
-
-        return $cert;
+        return ayya();
     }
 
     protected static function getHeaders()

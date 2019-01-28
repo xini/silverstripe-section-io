@@ -58,14 +58,6 @@ When a form page is requested and the security token is activated, a cookie is s
 
 To prevent that the module includes an extension for the `UserDefinedForm_Controller` that adds an HTTP header `X-SS-Form` to the response. When this header is set, the cookies are kept by the vcl and the request goes back to the origin server.
 
-If you build custom forms, you need to add the `SectionIOFormControllerExtension` to the controller managing your form:
-
-```
-YourForm_Controller:
-  extensions:
-    - SectionIOFormControllerExtension
-```
-
 ### section.io API config
 
 You need to add the following to your config.yml: 
@@ -125,6 +117,17 @@ Member:
 ```
 
 If this is set, a session cookie called "sslogin" will be set to "1" whenever a user logs in. This cookie is checked in the default vcl included in this module and all requests passed if the cookie is set. 
+
+### SSL verification
+
+For you local development environment you can disable the verification of SSL certificates in the API call:
+
+```
+SectionIO:
+  verify_ssl: false
+```
+
+Please make sure this is set to `true` in production.
 
 ### Varnish node locations
 
