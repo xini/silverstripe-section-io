@@ -171,7 +171,7 @@ class SectionIO extends Object implements Flushable
                 CURLOPT_SSL_VERIFYHOST => 0,
             );
         }
-        return ayya();
+        return array();
     }
 
     protected static function getHeaders()
