@@ -4,6 +4,9 @@ sudo: false
 
 language: php
 
+before_install:
+  - pip install --user codecov
+
 matrix:
   include:
     - php: 5.4
@@ -18,17 +21,17 @@ matrix:
       env: DB=MYSQL CORE_RELEASE=3.7
 
 before_script:
-  - composer self-update
   - phpenv rehash
+  - composer self-update || true
   - git clone git://github.com/silverstripe/silverstripe-travis-support.git ~/travis-support
   - php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss
   - cd ~/builds/ss
 
 script:
-  - vendor/bin/phpunit --coverage-clover coverage.clover section-io/tests
+  - vendor/bin/phpunit --coverage-clover coverage.clover section-io/tests/
   
 after_success:
   - mv coverage.clover ~/build/$TRAVIS_REPO_SLUG/
   - cd ~/build/$TRAVIS_REPO_SLUG
   - wget https://scrutinizer-ci.com/ocular.phar
-  - php ocular.phar code-coverage:upload --format=php-clover coverage.clover
+  - travis_retry codecov && travis_retry php ocular.phar code-coverage:upload --format=php-clover coverage.clover
