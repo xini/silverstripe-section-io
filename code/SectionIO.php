@@ -1,6 +1,6 @@
 <?php
 
-class SectionIO extends Object implements Flushable
+class SectionIO extends SS_Object implements Flushable
 {
     private static $flush_on_dev_build = true;
 
