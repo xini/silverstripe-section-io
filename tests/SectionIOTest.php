@@ -148,37 +148,6 @@ class SectionIOTest extends SapphireTest
             'accept header is correct'
         );
 
-        // options
-        $this->assertArrayHasKey(
-            CURLOPT_SSL_VERIFYPEER,
-            $result[0]['options'],
-            'ssl verify is set'
-        );
-        $this->assertEquals(
-            1,
-            $result[0]['options'][CURLOPT_SSL_VERIFYPEER],
-            'ssl verfify is activated'
-        );
-        $this->assertArrayHasKey(
-            CURLOPT_SSL_VERIFYHOST,
-            $result[0]['options'],
-            'ssl verfi host os set'
-        );
-        $this->assertEquals(
-            2,
-            $result[0]['options'][CURLOPT_SSL_VERIFYHOST],
-            'ssl verfify host is set to 2'
-        );
-        $this->assertArrayHasKey(
-            CURLOPT_CAINFO,
-            $result[0]['options'],
-            'ca info is set'
-        );
-        $this->assertNotEmpty(
-            $result[0]['options'][CURLOPT_CAINFO],
-            'ca info is not empty'
-        );
-
         // service
         $this->assertInstanceOf(
             'RestfulService',
