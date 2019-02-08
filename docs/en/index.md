@@ -56,7 +56,15 @@ This header gets picked up by the vcl to determine whther
 
 When a form page is requested and the security token is activated, a cookie is set and all subsequent requests for that user will not be cached because of the cookie.
 
-To prevent that the module includes an extension for the `UserDefinedForm_Controller` that adds an HTTP header `X-SS-Form` to the response. When this header is set, the cookies are kept by the vcl and the request goes back to the origin server.
+To prevent that, the module includes an extension for the `UserDefinedForm_Controller` that adds an HTTP header `X-SS-Form` to the response. When this header is set, the cookies are kept by the vcl and the request goes back to the origin server. Otherwise the session cookie is removed from frontend requests.
+
+If you build custom forms, you need to add the `SectionIOFormControllerExtension` to the controller managing your form:
+
+```
+YourForm_Controller:
+  extensions:
+    - SectionIOFormControllerExtension
+```
 
 ### section.io API config
 
