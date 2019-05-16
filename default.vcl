@@ -39,7 +39,7 @@ sub vcl_recv {
 	} else if (req.http.section-io-geo-country) {
 		set req.http.X-Country-Code = req.http.section-io-geo-country;
 	} else if (req.http.geoip.country_code2) {
-	    set req.http.X-Country-Code = req.http.geoip.country_code2;
+		set req.http.X-Country-Code = req.http.geoip.country_code2;
 	}
 
 	# pass for admin, forms and logged in users
@@ -126,9 +126,9 @@ sub vcl_backend_response {
 	# and other mistakes your backend does.
 	
 	# Don't cache 50x responses
-    if (beresp.status >= 500 && beresp.status <= 599) {
-      return (abandon);
-    }
+	if (beresp.status >= 500 && beresp.status <= 599) {
+		return (abandon);
+	}
 	
 	# cache static content
 	# set cache control header for css & js
@@ -157,7 +157,7 @@ sub vcl_backend_response {
 	}
 	
 	# normal pages 
-    if (beresp.http.Content-Type ~ "^text/html"){
+	if (beresp.http.Content-Type ~ "^text/html"){
 		if (
 			(bereq.url ~ "^/(Security|admin|dev)") ||
 			(bereq.url ~ "stage=") ||
@@ -170,8 +170,8 @@ sub vcl_backend_response {
 			set beresp.ttl = 120s;
 		} else {
 			# if just normal page, set cache control headers
-		    unset beresp.http.expires;
-		    set beresp.http.Cache-Control = "max-age=600,public";
+			unset beresp.http.expires;
+			set beresp.http.Cache-Control = "max-age=600,public";
 			set beresp.ttl = 3600s;
 			# remove cookies
 			unset beresp.http.set-cookie;
@@ -180,8 +180,8 @@ sub vcl_backend_response {
 	
 	# make sure svg files are compressed
 	if (beresp.http.content-type ~ "image/svg\+xml") {
-        set beresp.do_gzip = true;
-    }
+		set beresp.do_gzip = true;
+	}
 	
 	# set grace period
 	set beresp.grace = 24h;
@@ -193,6 +193,25 @@ sub vcl_backend_response {
 	# un-comment this to see in the X-Cookie-Debug header what cookies varnish still sees after cookie stripping in vcl_recv
 	#set beresp.http.X-Cookie-Debug = "Request cookie: " + bereq.http.Cookie;
 	
+}
+
+sub vcl_hit {
+	if (obj.ttl < 0s && obj.ttl + obj.grace > 0s) {
+		if (req.restarts == 0) {
+			set req.http.sie-enabled = true;
+			return (fetch);
+		} else {
+			set req.http.sie-abandon = true;
+			return (deliver);
+		}
+	}
+
+	if (obj.ttl >= 0s) {
+		return (deliver);
+	}
+
+	return (fetch);
+	# Varnish Cache 5 needs to not fetch -> return (miss);
 }
 
 sub vcl_deliver {
@@ -236,21 +255,26 @@ sub vcl_deliver {
 }
 
 sub vcl_hash {
-    # add protocol to cache key
+	# add protocol to cache key
 	if (req.http.X-Forwarded-Proto) {
 		hash_data(req.http.X-Forwarded-Proto);
 	}
 	# add country code to cache key
 	if (req.http.X-Country-Code) {
-	    hash_data(req.http.X-Country-Code);
+		hash_data(req.http.X-Country-Code);
 	}
 }
 
-# domain and https redirects
-#sub vcl_synth {
-#    if (resp.status == 750) {
-#        set resp.status = 301;
-#        set resp.http.Location = "https://" + req.http.host + req.url;
-#        return(deliver);
-#    }
-#}
+sub vcl_synth {
+	# catch return(abandon) from vcl_backend_response
+	if (resp.status == 503 && req.http.sie-enabled) {
+		unset req.http.sie-enabled;
+		return (restart);
+	}
+	# domain and https redirects
+#	if (resp.status == 750) {
+#		set resp.status = 301;
+#		set resp.http.Location = "https://" + req.http.host + req.url;
+#		return(deliver);
+#	}
+}

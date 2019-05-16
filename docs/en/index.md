@@ -34,7 +34,7 @@ To activate the HTTPS redirect included in the default vcl file, you need to un-
 #		return (synth(750, ""));
 #	}
 ```
-You also need to uncomment the `sub vcl_synth` at the end of the file.
+You also need to uncomment the redirects in `vcl_synth` at the end of the file.
 
 For the vcl to pick up the protocol, it needs an additional header in the response. You can add that by adding the following snippet to your .htaccess file on the origin server (the snipped also includes the redirection to HTTPS, which needs to be before the header code):
 ```
