@@ -137,6 +137,17 @@ SectionIO:
 
 Please make sure this is set to `true` in production.
 
+### Async API call
+
+You can disable async API calling by setting the following config.
+
+```
+SectionIO:
+  async: false
+```
+
+This is set to `true` by default to speed up the experience in the CMS when saving a page. 
+
 ### Varnish node locations
 
 When you setup your section.io account and application the varnish nodes will be set up in your "home" AWS region only by default. If you need cache nodes in other regions, please ask section.io support to put your application on a network with nodes in those regions. 

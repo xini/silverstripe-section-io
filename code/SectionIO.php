@@ -14,6 +14,7 @@ class SectionIO extends SS_Object implements Flushable
     private static $username = '';
     private static $password = '';
     private static $verify_ssl = true;
+    private static $async = true;
 
     /**
      * Implementation of Flushable::flush()
@@ -157,6 +158,7 @@ class SectionIO extends SS_Object implements Flushable
         // set query string (ban expression)
         $service->setQueryString(array(
             'banExpression' => $banExpression,
+            'async' => Config::inst()->get('SectionIO', 'async') ? 'true' : 'false',
         ));
 
         return $service;
