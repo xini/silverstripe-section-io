@@ -87,7 +87,8 @@ class SectionIO extends SS_Object implements Flushable
                     $exp = 'obj.http.content-type ~ "'.preg_quote('text/html').'"';
                     break;
 
-                case 'everyting':
+                case 'everyting': // compatibility, old typo
+                case 'everything':
                 default:
                     $exp = 'obj.http.x-url ~ /';
                     break;

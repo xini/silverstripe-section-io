@@ -102,7 +102,7 @@ SectionIO:
 * `single` (default) only bans the SiteTree object currently published.
 * `parents` bans the current page as well as all its parents.
 * `all` bans all pages on the site.
-* `everyting` bans the whole site.
+* `everything` bans the whole site.
 
 ### flush on /dev/build
 
