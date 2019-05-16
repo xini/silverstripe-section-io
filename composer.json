@@ -4,10 +4,10 @@
 	"type": "silverstripe-module",
 	"license": "BSD-3-Clause",
 	"keywords": ["silverstripe", "caching", "varnish", "section.io"],
-	"homepage": "http://github.com/xini/silverstripe-section-io",
+	"homepage": "https://github.com/xini/silverstripe-section-io",
 	"authors": [{
 		"name": "Florian Thoma",
-		"homepage": "http://www.innoweb.com.au"
+		"homepage": "https://www.innoweb.com.au"
 	}],
 	"require":
 	{

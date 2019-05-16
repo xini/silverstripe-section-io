@@ -29,7 +29,6 @@ Install the module using composer:
 ```
 composer require xini/silverstripe-section-io dev-master
 ```
-or download or git clone the module into a ‘section-io’ directory in your webroot.
 
 Then run dev/build.
 
