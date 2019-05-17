@@ -26,6 +26,6 @@ class SectionIOSiteTreeExtension extends SiteTreeExtension
     {
         SectionIO::flushAll();
         
-        parent::onBeforeUnpublish();
+        parent::onAfterUnpublish();
     }
 }
