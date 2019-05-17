@@ -96,13 +96,19 @@ SiteTree objects are banned from being delivered ("flushed") `onAfterPublish`. Y
 
 ```
 SectionIO:
-  sitetree_flush_strategy: '{single|parents|all|everything}'
+  sitetree_flush_strategy: '{single|parents|all|smart|everything}'
 ```
 
-* `single` (default) only bans the SiteTree object currently published.
-* `parents` bans the current page as well as all its parents.
-* `all` bans all pages on the site.
-* `everything` bans the whole site.
+* `single` (default) only bans the SiteTree object currently published
+* `parents` bans the current page as well as all its parents
+* `all` bans all pages on the site
+* `smart` bans pages based on what has changed (see below)
+* `everything` bans the whole site, including pages and files
+
+The `smart` strategy bans:
+* all pages if you modify the title or URL of a page
+* only the current page if you modify the contents of a page
+* the current page and all its parents if you modify a page that has a parent
 
 ### flush on /dev/build
 

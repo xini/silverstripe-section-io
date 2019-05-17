@@ -4,7 +4,7 @@ class SectionIO extends SS_Object implements Flushable
 {
     private static $flush_on_dev_build = true;
 
-    private static $sitetree_flush_strategy = 'single';
+    private static $sitetree_flush_strategy = 'smart';
 
     private static $api_url = 'https://aperture.section.io/api/v1';
     private static $account_id = '';
@@ -15,7 +15,13 @@ class SectionIO extends SS_Object implements Flushable
     private static $password = '';
     private static $verify_ssl = true;
     private static $async = true;
-
+    
+    const SITETREE_STRATEGY_SINGLE = 'single';
+    const SITETREE_STRATEGY_PARENTS = 'parents';
+    const SITETREE_STRATEGY_ALL = 'all';
+    const SITETREE_STRATEGY_SMART = 'smart';
+    const SITETREE_STRATEGY_EVERYTING = 'everything';
+    
     /**
      * Implementation of Flushable::flush()
      * Is triggered on dev/build and ?flush=1.
@@ -60,19 +66,24 @@ class SectionIO extends SS_Object implements Flushable
         return false;
     }
 
-    public static function flushSiteTree($sitetreeID)
+    public static function flushSiteTree($sitetreeID, $smartStrategy = null)
     {
         $sitetree = SiteTree::get()->byID($sitetreeID);
         if ($sitetree && $sitetree->exists()) {
+            // get strategy config
             $strategy = Config::inst()->get('SectionIO', 'sitetree_flush_strategy');
+            // set smart strategy if set
+            if ($strategy == SectionIO::SITETREE_STRATEGY_SMART && $smartStrategy) {
+                $strategy = $smartStrategy;
+            }
             switch ($strategy) {
 
-                case 'single':
+                case SectionIO::SITETREE_STRATEGY_SINGLE:
                     $exp = 'obj.http.content-type ~ "'.preg_quote('text/html').'"';
                     $exp .= ' && obj.http.x-url ~ "^'.preg_quote($sitetree->Link()).'$"';
                     break;
 
-                case 'parents':
+                case SectionIO::SITETREE_STRATEGY_PARENTS:
                     $exp = 'obj.http.content-type ~ "'.preg_quote('text/html').'"';
                     $exp .= ' && (obj.http.x-url ~ "^'.preg_quote($sitetree->Link()).'$"';
                     $parent = $sitetree->getParent();
@@ -83,12 +94,12 @@ class SectionIO extends SS_Object implements Flushable
                     $exp .= ')';
                     break;
 
-                case 'all':
+                case SectionIO::SITETREE_STRATEGY_ALL:
                     $exp = 'obj.http.content-type ~ "'.preg_quote('text/html').'"';
                     break;
 
                 case 'everyting': // compatibility, old typo
-                case 'everything':
+                case SectionIO::SITETREE_STRATEGY_EVERYTING:
                 default:
                     $exp = 'obj.http.x-url ~ /';
                     break;
