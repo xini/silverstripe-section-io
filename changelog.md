@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.6.2]
+
+* introduce async API calls
+* fix typo for 'everything' flush strategy
+* add grace period handling to default.vcl
+* add 'smart' flush strategy and make it default
+
 ## [1.6.1]
 
 * fix typo
