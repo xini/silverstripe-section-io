@@ -17,10 +17,8 @@ class SectionIOTest extends SapphireTest
 {
     protected static $fixture_file = 'SectionIOTest.yml';
 
-    public function setUpBeforeClass()
+    public static function setUpBeforeClass()
     {
-        parent::setUpBeforeClass();
-
         // add config values
         Config::modify()->set(SectionIO::class, 'flush_on_dev_build', true);
         Config::modify()->set(SectionIO::class, 'api_url', 'https://example.com');
@@ -39,8 +37,6 @@ class SectionIOTest extends SapphireTest
 
     public function setUp()
     {
-        parent::setUp();
-        
         // Set backend root to /ImageTest
         TestAssetStore::activate('FileTest');
         
@@ -57,10 +53,8 @@ class SectionIOTest extends SapphireTest
         
     }
 
-    public function tearDownAfterClass()
+    public static function tearDownAfterClass()
     {
-        parent::tearDownAfterClass();
-        
         // re-add extensions
         File::add_extension('SectionIOFileExtension');
         SiteTree::add_extension('SectionIOSiteTreeExtension');
@@ -69,8 +63,6 @@ class SectionIOTest extends SapphireTest
     public function tearDown()
     {
         TestAssetStore::reset();
-        
-        parent::tearDown();
     }
 
     public function testFlushAll()
