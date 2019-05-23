@@ -33,7 +33,7 @@
 	},
 	"autoload-dev": {
         "psr-4": {
-            "Innoweb\\SectionIO\\Tests": "tests/"
+            "Innoweb\\SectionIO\\Tests\\": "tests/"
         }
 	},
     "prefer-stable": true,
