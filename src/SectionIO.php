@@ -63,7 +63,7 @@ class SectionIO implements Flushable
         if ($image && $image->exists()) {
             // build file paths
             $url = $image->getURL();
-            $filename = $image->getFilename();
+            $filename = $image->Name;
             $extension = $image->getExtension();
             $nameWithoutExtension = substr($filename, 0, strlen($filename) - strlen($extension) - 1);
             $path = substr($url, 0, strrpos($url, "/") + 1);
