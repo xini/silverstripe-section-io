@@ -39,6 +39,8 @@ class SectionIOTest extends SapphireTest
 
     public function setUp()
     {
+        parent::setUp();
+        
         // Set backend root to /ImageTest
         TestAssetStore::activate('FileTest');
         
@@ -66,6 +68,8 @@ class SectionIOTest extends SapphireTest
 
     public function tearDown()
     {
+        parent::tearDown();
+        
         TestAssetStore::reset();
     }
 
