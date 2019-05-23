@@ -6,9 +6,6 @@
 [![Version](http://img.shields.io/packagist/v/innoweb/silverstripe-section-io.svg?style=flat)](https://packagist.org/packages/innoweb/silverstripe-section-io)
 [![License](http://img.shields.io/packagist/l/innoweb/silverstripe-section-io.svg?style=flat)](license.md)
 
-[![Version](http://img.shields.io/packagist/v/innoweb/silverstripe-mailchimp-signup.svg?style=flat)](https://packagist.org/packages/innoweb/silverstripe-section-io)
-[![License](http://img.shields.io/packagist/l/innoweb/silverstripe-mailchimp-signup.svg?style=flat)](license.md)
-
 ## Overview
 
 Integrates a SilverStripe installation with [section.io](https://www.section.io/) varnish cache. section.io is a cloud installation of varnish running on AWS.
