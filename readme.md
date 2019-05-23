@@ -8,7 +8,7 @@
 
 ## Overview
 
-Integrates a SilverStripe installation with [section.io] (https://www.section.io/) varnish cache. section.io is a cloud installation of varnish running on AWS.
+Integrates a SilverStripe installation with [section.io](https://www.section.io/) varnish cache. section.io is a cloud installation of varnish running on AWS.
 
 It uses varnish bans for flushing, which bans the objects from being delivered from cache (and are therefor re-loaded into the cache from the origin server). 
 

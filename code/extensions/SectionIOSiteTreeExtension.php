@@ -18,14 +18,10 @@ class SectionIOSiteTreeExtension extends SiteTreeExtension
         }
         
         SectionIO::flushSiteTree($this->owner->ID, $strategy);
-        
-        parent::onAfterPublish($original);
     }
     
     public function onAfterUnpublish()
     {
         SectionIO::flushAll();
-        
-        parent::onAfterUnpublish();
     }
 }
