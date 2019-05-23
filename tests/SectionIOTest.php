@@ -187,12 +187,17 @@ class SectionIOTest extends SapphireTest
         $imageId = $this->idFromFixture(Image::class, 'testImage');
 
         $result = SectionIOTest_MySectionIO::flushImage($imageId);
-
+        
         // ban expression
-        $this->assertEquals(
-            'obj.http.x-url ~ "^/assets/SectionTest/test_image\.png$"'
-                .' || obj.http.x-url ~ "^/assets/SectionTest/test_image__[a-zA-Z0-9_]*\.png$"',
+        $this->assertThat(
             $result[0]['banExpression'],
+            $this->logicalOr(
+                'obj.http.x-url ~ "^/assets/SectionTest/test_image\.png$"'
+                    .' || obj.http.x-url ~ "^/assets/SectionTest/test_image__[a-zA-Z0-9_]*\.png$"',
+                'obj.http.x-url ~ "^/assets/SectionTest/55b443b601/test_image\.png$"'
+                    .' || obj.http.x-url ~ "^/assets/SectionTest/55b443b601/test_image__[a-zA-Z0-9_]*\.png$"'
+                
+            ),
             'ban expression is correct'
         );
     }
@@ -204,9 +209,12 @@ class SectionIOTest extends SapphireTest
         $result = SectionIOTest_MySectionIO::flushFile($fileId);
 
         // ban expression
-        $this->assertEquals(
-            'obj.http.x-url ~ "^/assets/SectionTest/test_document\.pdf$"',
+        $this->assertThat(
             $result[0]['banExpression'],
+            $this->logicalOr(
+                'obj.http.x-url ~ "^/assets/SectionTest/test_document\.pdf$"',
+                'obj.http.x-url ~ "^/assets/SectionTest/55b443b601/test_document\.pdf$"'
+            ),
             'ban expression is correct'
         );
     }
