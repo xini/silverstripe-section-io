@@ -6,14 +6,14 @@ SilverStripe\Assets\Image:
   testImage:
     FileFilename: SectionTest/test_image.png
     FileHash: 55b443b60176235ef09801153cca4e6da7494a0c
-	Name: test_image.png
+    Name: test_image.png
     ParentID: =>SilverStripe\Assets\Folder.folder1
 
 SilverStripe\Assets\File:
   testFile:
     FileFilename: assets/SectionTest/test_document.pdf
     FileHash: 55b443b60176235ef09801153cca4e6da7494a0c
-	Name: test_document.pdf
+    Name: test_document.pdf
     ParentID: =>SilverStripe\Assets\Folder.folder1
 
 Page:
