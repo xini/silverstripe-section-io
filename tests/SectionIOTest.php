@@ -22,15 +22,15 @@ class SectionIOTest extends SapphireTest
         parent::setUpOnce();
 
         // add config values
-        Config::inst()->update(SectionIO::class, 'flush_on_dev_build', true);
-        Config::inst()->update(SectionIO::class, 'api_url', 'https://example.com');
-        Config::inst()->update(SectionIO::class, 'account_id', '123456');
-        Config::inst()->update(SectionIO::class, 'application_id', '987654');
-        Config::inst()->update(SectionIO::class, 'environment_name', 'Production');
-        Config::inst()->update(SectionIO::class, 'proxy_name', 'myproxy');
-        Config::inst()->update(SectionIO::class, 'username', 'someuser');
-        Config::inst()->update(SectionIO::class, 'password', 'MySafePassword');
-        Config::inst()->update(SectionIO::class, 'verify_ssl', false);
+        Config::modify()->set(SectionIO::class, 'flush_on_dev_build', true);
+        Config::modify()->set(SectionIO::class, 'api_url', 'https://example.com');
+        Config::modify()->set(SectionIO::class, 'account_id', '123456');
+        Config::modify()->set(SectionIO::class, 'application_id', '987654');
+        Config::modify()->set(SectionIO::class, 'environment_name', 'Production');
+        Config::modify()->set(SectionIO::class, 'proxy_name', 'myproxy');
+        Config::modify()->set(SectionIO::class, 'username', 'someuser');
+        Config::modify()->set(SectionIO::class, 'password', 'MySafePassword');
+        Config::modify()->set(SectionIO::class, 'verify_ssl', false);
 
         // remove extensions otherwise the fixtures will break the tests (by calling the live flush)
         File::remove_extension(SectionIOFileExtension::class);
@@ -124,7 +124,7 @@ class SectionIOTest extends SapphireTest
         );
 
         // test deactivated flush on build
-        Config::inst()->update(SectionIO::class, 'flush_on_dev_build', false);
+        Config::modify()->set(SectionIO::class, 'flush_on_dev_build', false);
         $result = SectionIOTest_MySectionIO::flush();
         $this->assertNull(
             $result,
@@ -135,7 +135,7 @@ class SectionIOTest extends SapphireTest
     public function testMultipleApplicationIDs()
     {
         // add second application to config
-        Config::inst()->update(SectionIO::class, 'application_id', '2546987,856954');
+        Config::modify()->set(SectionIO::class, 'application_id', '2546987,856954');
 
         $result = SectionIOTest_MySectionIO::flushAll();
 
@@ -158,7 +158,7 @@ class SectionIOTest extends SapphireTest
         );
 
         // add second application to config with spaces in csv
-        Config::inst()->update(SectionIO::class, 'application_id', '741852, 369258');
+        Config::modify()->set(SectionIO::class, 'application_id', '741852, 369258');
 
         $result = SectionIOTest_MySectionIO::flushAll();
 
@@ -215,7 +215,7 @@ class SectionIOTest extends SapphireTest
         $pageId = $this->idFromFixture('Page', 'ceo');
 
         // test single page flush
-        Config::inst()->update(SectionIO::class, 'sitetree_flush_strategy', 'single');
+        Config::modify()->set(SectionIO::class, 'sitetree_flush_strategy', 'single');
         $result = SectionIOTest_MySectionIO::flushSiteTree($pageId);
         $this->assertEquals(
             'obj.http.content-type ~ "text/html"'
@@ -225,7 +225,7 @@ class SectionIOTest extends SapphireTest
         );
 
         // test parents flush
-        Config::inst()->update(SectionIO::class, 'sitetree_flush_strategy', 'parents');
+        Config::modify()->set(SectionIO::class, 'sitetree_flush_strategy', 'parents');
         $result = SectionIOTest_MySectionIO::flushSiteTree($pageId);
         $this->assertEquals(
             'obj.http.content-type ~ "text/html"'
@@ -235,7 +235,7 @@ class SectionIOTest extends SapphireTest
         );
 
         // test all pages flush
-        Config::inst()->update(SectionIO::class, 'sitetree_flush_strategy', 'all');
+        Config::modify()->set(SectionIO::class, 'sitetree_flush_strategy', 'all');
         $result = SectionIOTest_MySectionIO::flushSiteTree($pageId);
         $this->assertEquals(
             'obj.http.content-type ~ "text/html"',
@@ -244,7 +244,7 @@ class SectionIOTest extends SapphireTest
         );
 
         // test whole site flush
-        Config::inst()->update(SectionIO::class, 'sitetree_flush_strategy', 'everything');
+        Config::modify()->set(SectionIO::class, 'sitetree_flush_strategy', 'everything');
         $result = SectionIOTest_MySectionIO::flushSiteTree($pageId);
         $this->assertEquals(
             'obj.http.x-url ~ /',
