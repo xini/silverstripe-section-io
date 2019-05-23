@@ -41,8 +41,8 @@ class SectionIOTest extends SapphireTest
     {
         parent::setUp();
         
-        // Set backend root to /ImageTest
-        TestAssetStore::activate('FileTest');
+        // Set backend root to /SectionTest
+        TestAssetStore::activate('SectionTest');
         
         // Create a test files for each of the fixture references
         $fileIDs = array_merge(
