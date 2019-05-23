@@ -51,9 +51,6 @@ sub vcl_recv {
 		# Staging/Previewing URLs while in /admin
 		(req.url ~ "stage=") ||
 		
-		# ss multistep forms
-		(req.url ~ "MultiFormSessionID=") ||
-		
 		# check for login cookie
 		(req.http.Cookie ~ "sslogin=")
 
@@ -111,14 +108,6 @@ sub vcl_recv {
 	
 }
 
-sub vcl_backend_fetch {
-	# Called before sending the backend request.
-	#
-	# Typically you alter the request for the backend here. Overriding to the
-	# required hostname, upstream Proto matching, etc
-	
-}
-
 sub vcl_backend_response {
 	# Happens after we have read the response headers from the backend.
 	#
@@ -161,9 +150,8 @@ sub vcl_backend_response {
 		if (
 			(bereq.url ~ "^/(Security|admin|dev)") ||
 			(bereq.url ~ "stage=") ||
-			(bereq.url ~ "MultiFormSessionID=") ||
 			(bereq.http.Cookie ~ "sslogin=") ||
-			(beresp.http.X-SS-Form) 
+			(beresp.http.Chache-Control ~ "no-store") 
 		) {
 			# set admin and form pages to uncacheable (hit-for-pass)
 			set beresp.uncacheable = true;
@@ -226,10 +214,9 @@ sub vcl_deliver {
 		(req.http.Cookie) &&
 		!(req.url ~ "^/(Security|admin|dev)") &&
 		!(req.url ~ "stage=") &&
-		!(req.url ~ "MultiFormSessionID=") &&
 		!(req.method == "POST") &&
 		!(req.http.Cookie ~ "sslogin=") &&
-		!(resp.http.X-SS-Form)
+		!(resp.http.Chache-Control ~ "no-store")
 	) {
 		set resp.http.set-cookie = "PHPSESSID=deleted; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HttpOnly";
 	}

@@ -1,16 +1,21 @@
-Folder:
+SilverStripe\Assets\Folder:
   folder1:
-    Filename: assets/SectionTest/
-Image:
+    Name: SectionTest
+
+SilverStripe\Assets\Image:
   testImage:
-    Title: 'This is a image Title'
-    Filename: assets/SectionTest/test_image.png
-    Parent: =>Folder.folder1
-File:
+    FileFilename: SectionTest/test_image.png
+    FileHash: 55b443b60176235ef09801153cca4e6da7494a0c
+	Name: test_image.png
+    ParentID: =>SilverStripe\Assets\Folder.folder1
+
+SilverStripe\Assets\File:
   testFile:
-    Title: 'This is a file title'
-    Filename: assets/SectionTest/test_document.pdf
-    Parent: =>Folder.folder1
+    FileFilename: assets/SectionTest/test_document.pdf
+    FileHash: 55b443b60176235ef09801153cca4e6da7494a0c
+	Name: test_document.pdf
+    ParentID: =>SilverStripe\Assets\Folder.folder1
+
 Page:
   home:
     Title: Home

@@ -2,10 +2,6 @@
 
 ## Configuration
 
-**Caution:**
-
-* HTTP::cache_age needs to be 0 (= default), otherwise the Vary header will be set to "Cookie, X-Forwarded-Protocol, User-Agent, Accept" which pretty much disables caching alltogether
-
 ### Default VCL
 
 The module contains a default vcl (Varnish Configuration Language) file you can use with this module. The file does the following:
@@ -15,7 +11,7 @@ The module contains a default vcl (Varnish Configuration Language) file you can 
 * pass requests for admin, Security and dev requests
 * pass requests for multistep forms
 * pass requests if the login marker cookie 'sslogin' is set
-* pass request if X-SS-Form header is present, otherwise remove cookies
+* pass request if cache header no-store is present, otherwise remove cookies
 * remove most common tracking cookies
 * remove adwords gclid parameters
 * enforces the compression of svg files
@@ -54,24 +50,16 @@ This header gets picked up by the vcl to determine whther
 
 ### Forms
 
-When a form page is requested and the security token is activated, a cookie is set and all subsequent requests for that user will not be cached because of the cookie.
+When a form page is requested and the security token is activated, SilverStripe automatically disables caching, which sets the `no-store` caching header in the response. 
 
-To prevent that, the module includes an extension for the `UserDefinedForm_Controller` that adds an HTTP header `X-SS-Form` to the response. When this header is set, the cookies are kept by the vcl and the request goes back to the origin server. Otherwise the session cookie is removed from frontend requests.
-
-If you build custom forms, you need to add the `SectionIOFormControllerExtension` to the controller managing your form:
-
-```
-YourForm_Controller:
-  extensions:
-    - SectionIOFormControllerExtension
-```
+If this header is set, all cookies are stripped from the request. 
 
 ### section.io API config
 
 You need to add the following to your config.yml: 
 
 ```
-SectionIO:
+Innoweb\SectionIO\SectionIO:
   account_id: '{your section.io account ID}'
   application_id: '{your section.io application ID}'
   environment_name: '{your section.io environment name}'
@@ -84,7 +72,7 @@ Go to the API section in your https://aperture.section.io/ application account. 
 
 Unfortunately the section.io API doesn't allow any auth method other than username and password. You can create a seperate user for your API calls, but that user would still have the same permissions as your main account. I have requested the introduction of something similar to deploy keys. (Status 03/2016) 
 
-To configure different behaviour for different environments please use the default SS config options for [environment specific settings] (https://docs.silverstripe.org/en/3.3/developer_guides/configuration/configuration/#exclusionary-rules) or your mysite/_config.php file to set the config for a specific environment only. 
+To configure different behaviour for different environments please use the default SS config options for [environment specific settings] (https://docs.silverstripe.org/en/4/developer_guides/configuration/configuration/#exclusionary-rules) to set the config for a specific environment only. 
 
 If one of the settings is missing for an environment, the API will not be called and a warning will be logged. 
 
@@ -95,7 +83,7 @@ For the application_id you can configure multiple applications using a comma sap
 SiteTree objects are banned from being delivered ("flushed") `onAfterPublish`. You can change the strategy used for this ban:  
 
 ```
-SectionIO:
+Innoweb\SectionIO\SectionIO:
   sitetree_flush_strategy: '{single|parents|all|smart|everything}'
 ```
 
@@ -115,7 +103,7 @@ The `smart` strategy bans:
 You can configure whether the whole site should be banned from delivery from cache ("flushed") on dev/build: 
 
 ```
-SectionIO:
+Innoweb\SectionIO\SectionIO:
   flush_on_dev_build: {true|false}
 ```
 
@@ -126,7 +114,7 @@ Default is `true` and it flushes the whole site.
 If you want the cache to be disabled for logged in users, you can add the following to your config.yml:
 
 ```
-Member:
+SilverStripe\Security\Member:
   login_marker_cookie: sslogin
 ```
 
@@ -137,7 +125,7 @@ If this is set, a session cookie called "sslogin" will be set to "1" whenever a 
 For you local development environment you can disable the verification of SSL certificates in the API call:
 
 ```
-SectionIO:
+Innoweb\SectionIO\SectionIO:
   verify_ssl: false
 ```
 
@@ -148,7 +136,7 @@ Please make sure this is set to `true` in production.
 You can disable async API calling by setting the following config.
 
 ```
-SectionIO:
+Innoweb\SectionIO\SectionIO:
   async: false
 ```
 

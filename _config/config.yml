@@ -1,24 +1,11 @@
 ---
 Name: sectionio
 ---
-SiteTree:
+
+SilverStripe\CMS\Model\SiteTree:
   extensions:
-    - SectionIOSiteTreeExtension
-File:
-  extensions:
-    - SectionIOFileExtension
----
-Only:
-  classexists: 'UserDefinedForm_Controller'
----
-UserDefinedForm_Controller:
-  extensions:
-    - SectionIOFormControllerExtension
----
-Only:
-  classexists: 'DMSDocument'
----
-DMSDocument:
-  extensions:
-    - SectionIODMSDocumentExtension
+    - Innoweb\SectionIO\Extensions\SectionIOSiteTreeExtension
     
+SilverStripe\Assets\File:
+  extensions:
+    - Innoweb\SectionIO\Extensions\SectionIOFileExtension

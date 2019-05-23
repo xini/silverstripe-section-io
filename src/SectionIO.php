@@ -1,18 +1,35 @@
 <?php
 
-class SectionIO extends SS_Object implements Flushable
+namespace Innoweb\SectionIO;
+
+use GuzzleHttp\Client as GuzzleClient;
+use SilverStripe\Assets\File;
+use SilverStripe\Assets\Image;
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Control\Controller;
+use SilverStripe\Core\Flushable;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Config\Configurable;
+use SilverStripe\Core\Injector\Injectable;
+
+class SectionIO implements Flushable
 {
+    
+    use Configurable;
+    use Injectable;
+    
     private static $flush_on_dev_build = true;
 
     private static $sitetree_flush_strategy = 'smart';
 
     private static $api_url = 'https://aperture.section.io/api/v1';
-    private static $account_id = '';
-    private static $application_id = '';
-    private static $environment_name = '';
-    private static $proxy_name = '';
-    private static $username = '';
-    private static $password = '';
+    private static $account_id = null;
+    private static $application_id = null;
+    private static $environment_name = null;
+    private static $proxy_name = null;
+    private static $username = null;
+    private static $password = null;
+    
     private static $verify_ssl = true;
     private static $async = true;
     
@@ -28,17 +45,15 @@ class SectionIO extends SS_Object implements Flushable
      */
     public static function flush()
     {
-        if (Config::inst()->get('SectionIO', 'flush_on_dev_build')) {
+        if (Config::inst()->get(self::class, 'flush_on_dev_build')) {
             return static::flushAll();
         }
-
         return;
     }
 
     public static function flushAll()
     {
         $exp = 'obj.http.x-url ~ /';
-
         return static::performFlush($exp);
     }
 
@@ -46,12 +61,21 @@ class SectionIO extends SS_Object implements Flushable
     {
         $image = Image::get()->byID($imageID);
         if ($image && $image->exists()) {
-            $exp = 'obj.http.x-url ~ "^/'.preg_quote($image->getFilename()).'$"'; // image itself
-            $exp    .= ' || obj.http.x-url ~ "^/'.preg_quote($image->Parent()->getFilename())
-                    .'_resampled/(.*)\-'.preg_quote($image->Name).'$"'; // resampled versions
-            return static::performFlush($exp);
+            // build file paths
+            $url = $image->getURL();
+            $filename = $image->getFilename();
+            $extension = $image->getExtension();
+            $nameWithoutExtension = substr($filename, 0, strlen($filename) - strlen($extension) - 1);
+            $path = substr($url, 0, strrpos($url, "/") + 1);
+            // collect variants
+            $parts = [];
+            // original image
+            $parts[] = 'obj.http.x-url ~ "^'.preg_quote($url).'$"';
+            // resampled variants
+            $parts[] = 'obj.http.x-url ~ "^'.preg_quote($path).preg_quote($nameWithoutExtension)
+                .'__[a-zA-Z0-9_]*\.'.preg_quote($extension).'$"'; // variants
+            return static::performFlush(implode(' || ', $parts));
         }
-
         return false;
     }
 
@@ -59,19 +83,18 @@ class SectionIO extends SS_Object implements Flushable
     {
         $file = File::get()->byID($fileID);
         if ($file && $file->exists()) {
-            $exp = 'obj.http.x-url ~ "^/'.preg_quote($file->getFilename()).'$"';
+            $exp = 'obj.http.x-url ~ "^'.preg_quote($file->getURL()).'$"';
             return static::performFlush($exp);
         }
-
         return false;
     }
-
+    
     public static function flushSiteTree($sitetreeID, $smartStrategy = null)
     {
         $sitetree = SiteTree::get()->byID($sitetreeID);
         if ($sitetree && $sitetree->exists()) {
             // get strategy config
-            $strategy = Config::inst()->get('SectionIO', 'sitetree_flush_strategy');
+            $strategy = Config::inst()->get(self::class, 'sitetree_flush_strategy');
             // set smart strategy if set
             if ($strategy == SectionIO::SITETREE_STRATEGY_SMART && $smartStrategy) {
                 $strategy = $smartStrategy;
@@ -105,10 +128,8 @@ class SectionIO extends SS_Object implements Flushable
                     break;
 
             }
-
             return static::performFlush($exp);
         }
-
         return false;
     }
     
@@ -124,96 +145,56 @@ class SectionIO extends SS_Object implements Flushable
     {
         $success = true;
         $urls = static::getUrls();
-        // config loaded successfully
-		if (static::checkConfig()) {
-			if (count($urls) > 0) {
-				foreach ($urls as $url) {
+        if (count($urls) > 0) {
+            foreach ($urls as $url) {
 
-					// get restful service object
-					$service = static::getService($url, $banExpression);
-
-					// prepare headers
-					$headers = static::getHeaders();
-
-					// prepare curl options
-					$options = static::getOptions();
-
-					// call API
-					$conn = $service->request(null, 'POST', null, $headers, $options);
-
-					if ($conn->isError()) {
-						SS_Log::log('SectionIO::performFlush :: '.$conn->getStatusCode().' : '.$conn->getStatusDescription().' : '.$url, SS_Log::ERR);
-						$success = $success && false;
-					} else {
-						SS_Log::log('SectionIO::performFlush :: ban successful. url: '.$url."; ban expression: '".$banExpression."'", SS_Log::NOTICE);
-					}
-				}
-			} else {
-				SS_Log::log('SectionIO::performFlush :: no URLs loaded for ban.', SS_Log::ERR);
-			}
-		}
-		
-        return $success;
-    }
-
-    protected static function getService($url, $banExpression)
-    {
-        // prepare API call
-        $service = new RestfulService(
-            $url,
-            0 // expiry time 0: do not cache the API call
-        );
-        // set basic auth
-        $username = Config::inst()->get('SectionIO', 'username');
-        $password = Config::inst()->get('SectionIO', 'password');
-        $service->basicAuth($username, $password);
-        // set query string (ban expression)
-        $service->setQueryString(array(
-            'banExpression' => $banExpression,
-            'async' => Config::inst()->get('SectionIO', 'async') ? 'true' : 'false',
-        ));
-
-        return $service;
-    }
-
-    protected static function getOptions()
-    {
-        // prepare curl options for ssl verification
-        if (Config::inst()->get('SectionIO', 'verify_ssl')) {
-            return array(
-                CURLOPT_SSL_VERIFYPEER => 0,
-                CURLOPT_SSL_VERIFYHOST => 0,
-            );
+                $client = new GuzzleClient();
+                
+                $response = $client->request('POST', $url, [
+                    'query' => [
+                        'banExpression' => $banExpression,
+                        'async' => Config::inst()->get(self::class, 'async') ? 'true' : 'false',
+                    ],
+                    'auth' => [
+                        Config::inst()->get(self::class, 'username'),
+                        Config::inst()->get(self::class, 'password'),
+                    ],
+                    'verify' => Config::inst()->get(self::class, 'verify_ssl'),
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/json',
+                    ],
+                    'http_errors' => false,
+//                    'debug' => fopen('d:\\workspace\\cairns-visitor-centre\\.log\\guzzle.log', "w+")
+                ]);
+                
+                if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 400) {
+                    user_error('SectionIO::performFlush :: '.$response->getStatusCode().': '.$response->getBody(), E_USER_WARNING);
+                    $success = $success && false;
+                }
+            }
+        } else {
+            user_error('SectionIO::performFlush :: no URLs loaded for ban.', E_USER_WARNING);
         }
-        return array();
-    }
-
-    protected static function getHeaders()
-    {
-        $headers = array(
-            'Content-Type: application/json',
-            'Accept: application/json',
-        );
-
-        return $headers;
+        return $success;
     }
 
     protected static function getUrls()
     {
-        $urls = array();
+        $urls = [];
 
         if (static::checkConfig()) {
-            $api_url = Config::inst()->get('SectionIO', 'api_url');
-            $account_id = Config::inst()->get('SectionIO', 'account_id');
-            $application_id = Config::inst()->get('SectionIO', 'application_id');
-            $application_ids = array();
+            $api_url = Config::inst()->get(self::class, 'api_url');
+            $account_id = Config::inst()->get(self::class, 'account_id');
+            $application_id = Config::inst()->get(self::class, 'application_id');
+            $application_ids = [];
             if (is_string($application_id)) {
                 $application_ids = preg_split("/[\s,]+/", $application_id);
             } elseif (is_array($application_id)) {
                 $application_ids = $application_id;
             }
-            $environment_name = Config::inst()->get('SectionIO', 'environment_name');
-            $proxy_name = Config::inst()->get('SectionIO', 'proxy_name');
+            $environment_name = Config::inst()->get(self::class, 'environment_name');
+            $proxy_name = Config::inst()->get(self::class, 'proxy_name');
 
             foreach ($application_ids as $appid) {
                 // build API URL: /account/{accountId}/application/{applicationId}/environment/{environmentName}/proxy/{proxyName}/state
@@ -237,41 +218,39 @@ class SectionIO extends SS_Object implements Flushable
 
     protected static function checkConfig()
     {
-        $missing = array();
+        $missing = [];
         // check config
-        $api_url = Config::inst()->get('SectionIO', 'api_url');
+        $api_url = Config::inst()->get(self::class, 'api_url');
         if (!isset($api_url) || strlen($api_url) < 1) {
-            $missing[] = 'SectionIO.api_url';
+            $missing[] = 'api_url';
         }
-        $account_id = Config::inst()->get('SectionIO', 'account_id');
+        $account_id = Config::inst()->get(self::class, 'account_id');
         if (!isset($account_id) || strlen($account_id) < 1) {
-            $missing[] = 'SectionIO.account_id';
+            $missing[] = 'account_id';
         }
-        $application_id = Config::inst()->get('SectionIO', 'application_id');
+        $application_id = Config::inst()->get(self::class, 'application_id');
         if (!isset($application_id) || (!is_array($application_id) && strlen((string) $application_id) < 1)) {
-            $missing[] = 'SectionIO.application_id';
+            $missing[] = 'application_id';
         }
-        $environment_name = Config::inst()->get('SectionIO', 'environment_name');
+        $environment_name = Config::inst()->get(self::class, 'environment_name');
         if (!isset($environment_name) || strlen($environment_name) < 1) {
-            $missing[] = 'SectionIO.environment_name';
+            $missing[] = 'environment_name';
         }
-        $proxy_name = Config::inst()->get('SectionIO', 'proxy_name');
+        $proxy_name = Config::inst()->get(self::class, 'proxy_name');
         if (!isset($proxy_name) || strlen($proxy_name) < 1) {
-            $missing[] = 'SectionIO.proxy_name';
+            $missing[] = 'proxy_name';
         }
-        $username = Config::inst()->get('SectionIO', 'username');
+        $username = Config::inst()->get(self::class, 'username');
         if (!isset($username) || strlen($username) < 1) {
-            $missing[] = 'SectionIO.username';
+            $missing[] = 'username';
         }
-        $password = Config::inst()->get('SectionIO', 'password');
+        $password = Config::inst()->get(self::class, 'password');
         if (!isset($password) || strlen($password) < 1) {
-            $missing[] = 'SectionIO.password';
+            $missing[] = 'password';
         }
         
         if (count($missing) > 0) {
-			if (!Director::isDev()) {
-				SS_Log::log('SectionIO:: config parameters missing: ' . implode(', ', $missing), SS_Log::WARN);
-			}
+            user_error('SectionIO:: config parameters missing: ' . implode(', ', $missing), E_USER_WARNING);
             return false;
         }
         return true;

@@ -1,5 +1,18 @@
 <?php
 
+namespace Innoweb\SectionIO\Tests;
+
+use Innoweb\SectionIO\SectionIO;
+use Innoweb\SectionIO\Extensions\SectionIOFileExtension;
+use Innoweb\SectionIO\Extensions\SectionIOSiteTreeExtension;
+use SilverStripe\Assets\File;
+use SilverStripe\Assets\Image;
+use SilverStripe\Assets\Dev\TestAssetStore;
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\ORM\DataObject;
+
 class SectionIOTest extends SapphireTest
 {
     protected static $fixture_file = 'SectionIOTest.yml';
@@ -9,69 +22,45 @@ class SectionIOTest extends SapphireTest
         parent::setUpOnce();
 
         // add config values
-        Config::inst()->update('SectionIO', 'flush_on_dev_build', true);
-        Config::inst()->update('SectionIO', 'api_url', 'https://example.com');
-        Config::inst()->update('SectionIO', 'account_id', '123456');
-        Config::inst()->update('SectionIO', 'application_id', '987654');
-        Config::inst()->update('SectionIO', 'environment_name', 'Production');
-        Config::inst()->update('SectionIO', 'proxy_name', 'myproxy');
-        Config::inst()->update('SectionIO', 'username', 'someuser');
-        Config::inst()->update('SectionIO', 'password', 'MySafePassword');
-        Config::inst()->update('SectionIO', 'verify_ssl', false);
+        Config::inst()->update(SectionIO::class, 'flush_on_dev_build', true);
+        Config::inst()->update(SectionIO::class, 'api_url', 'https://example.com');
+        Config::inst()->update(SectionIO::class, 'account_id', '123456');
+        Config::inst()->update(SectionIO::class, 'application_id', '987654');
+        Config::inst()->update(SectionIO::class, 'environment_name', 'Production');
+        Config::inst()->update(SectionIO::class, 'proxy_name', 'myproxy');
+        Config::inst()->update(SectionIO::class, 'username', 'someuser');
+        Config::inst()->update(SectionIO::class, 'password', 'MySafePassword');
+        Config::inst()->update(SectionIO::class, 'verify_ssl', false);
 
         // remove extensions otherwise the fixtures will break the tests (by calling the live flush)
-        File::remove_extension('SectionIOFileExtension');
-        SiteTree::remove_extension('SectionIOSiteTreeExtension');
+        File::remove_extension(SectionIOFileExtension::class);
+        SiteTree::remove_extension(SectionIOSiteTreeExtension::class);
     }
 
     public function setUp()
     {
         parent::setUp();
-
-        if (!file_exists(ASSETS_PATH)) {
-            mkdir(ASSETS_PATH);
-        }
-
-        // Create a test folders for each of the fixture references
-        $folderIDs = $this->allFixtureIDs('Folder');
-        foreach ($folderIDs as $folderID) {
-            $folder = DataObject::get_by_id('Folder', $folderID);
-            if (!file_exists(BASE_PATH."/$folder->Filename")) {
-                mkdir(BASE_PATH."/$folder->Filename");
-            }
-        }
-
-        // Copy test images for each of the fixture references
-        $imageIDs = $this->allFixtureIDs('Image');
-        foreach ($imageIDs as $imageID) {
-            $image = DataObject::get_by_id('Image', $imageID);
-            $filePath = BASE_PATH."/$image->Filename";
-            $sourcePath = str_replace('assets/SectionTest/', 'section-io/tests/testfiles/', $filePath);
-            if (!file_exists($filePath)) {
-                if (!copy($sourcePath, $filePath)) {
-                    user_error('Failed to copy test images', E_USER_ERROR);
-                }
-            }
-        }
-
-        // Copy test files for each of the fixture references
-        $fileIDs = $this->allFixtureIDs('File');
+        
+        // Set backend root to /ImageTest
+        TestAssetStore::activate('FileTest');
+        
+        // Create a test files for each of the fixture references
+        $fileIDs = array_merge(
+            $this->allFixtureIDs(File::class),
+            $this->allFixtureIDs(Image::class)
+        );
         foreach ($fileIDs as $fileID) {
-            $file = DataObject::get_by_id('File', $fileID);
-            $filePath = BASE_PATH."/$file->Filename";
-            $sourcePath = str_replace('assets/SectionTest/', 'section-io/tests/testfiles/', $filePath);
-            if (!file_exists($filePath)) {
-                if (!copy($sourcePath, $filePath)) {
-                    user_error('Failed to copy test files', E_USER_ERROR);
-                }
-            }
+            /** @var File $file */
+            $file = DataObject::get_by_id(File::class, $fileID);
+            $file->setFromString(str_repeat('x', 1000000), $file->getFilename());
         }
+        
     }
 
     public function tearDownOnce()
     {
         parent::tearDownOnce();
-
+        
         // re-add extensions
         File::add_extension('SectionIOFileExtension');
         SiteTree::add_extension('SectionIOSiteTreeExtension');
@@ -79,36 +68,8 @@ class SectionIOTest extends SapphireTest
 
     public function tearDown()
     {
-        // Remove the test images that we've created
-        $imageIDs = $this->allFixtureIDs('Image');
-        foreach ($imageIDs as $imageID) {
-            $image = DataObject::get_by_id('Image', $imageID);
-            if ($image && file_exists(BASE_PATH."/$image->Filename")) {
-                unlink(BASE_PATH."/$image->Filename");
-            }
-        }
-
-        // Remove the test files that we've created
-        $fileIDs = $this->allFixtureIDs('File');
-        foreach ($fileIDs as $fileID) {
-            $file = DataObject::get_by_id('File', $fileID);
-            if ($file && file_exists(BASE_PATH."/$file->Filename")) {
-                unlink(BASE_PATH."/$file->Filename");
-            }
-        }
-
-        // Remove the test folders that we've created
-        $folderIDs = $this->allFixtureIDs('Folder');
-        foreach ($folderIDs as $folderID) {
-            $folder = DataObject::get_by_id('Folder', $folderID);
-            if ($folder && file_exists(BASE_PATH.'/'.$folder->Filename.'_resampled')) {
-                Filesystem::removeFolder(BASE_PATH.'/'.$folder->Filename.'_resampled');
-            }
-            if ($folder && file_exists(BASE_PATH."/$folder->Filename")) {
-                Filesystem::removeFolder(BASE_PATH."/$folder->Filename");
-            }
-        }
-
+        TestAssetStore::reset();
+        
         parent::tearDown();
     }
 
@@ -136,24 +97,6 @@ class SectionIOTest extends SapphireTest
             'ban expression is correct'
         );
 
-        // headers
-        $this->assertContains(
-            'Content-Type: application/json',
-            $result[0]['headers'],
-            'content type header is correct'
-        );
-        $this->assertContains(
-            'Accept: application/json',
-            $result[0]['headers'],
-            'accept header is correct'
-        );
-
-        // service
-        $this->assertInstanceOf(
-            'RestfulService',
-            $result[0]['service'],
-            'service is of type RestfulService'
-        );
     }
 
     public function testFlush()
@@ -181,7 +124,7 @@ class SectionIOTest extends SapphireTest
         );
 
         // test deactivated flush on build
-        Config::inst()->update('SectionIO', 'flush_on_dev_build', false);
+        Config::inst()->update(SectionIO::class, 'flush_on_dev_build', false);
         $result = SectionIOTest_MySectionIO::flush();
         $this->assertNull(
             $result,
@@ -192,7 +135,7 @@ class SectionIOTest extends SapphireTest
     public function testMultipleApplicationIDs()
     {
         // add second application to config
-        Config::inst()->update('SectionIO', 'application_id', '2546987,856954');
+        Config::inst()->update(SectionIO::class, 'application_id', '2546987,856954');
 
         $result = SectionIOTest_MySectionIO::flushAll();
 
@@ -215,7 +158,7 @@ class SectionIOTest extends SapphireTest
         );
 
         // add second application to config with spaces in csv
-        Config::inst()->update('SectionIO', 'application_id', '741852, 369258');
+        Config::inst()->update(SectionIO::class, 'application_id', '741852, 369258');
 
         $result = SectionIOTest_MySectionIO::flushAll();
 
@@ -247,7 +190,7 @@ class SectionIOTest extends SapphireTest
         // ban expression
         $this->assertEquals(
             'obj.http.x-url ~ "^/assets/SectionTest/test_image\.png$"'
-                .' || obj.http.x-url ~ "^/assets/SectionTest/_resampled/(.*)\-test_image\.png$"',
+                .' || obj.http.x-url ~ "^/assets/SectionTest/test_image__[a-zA-Z0-9_]*\.png$"',
             $result[0]['banExpression'],
             'ban expression is correct'
         );
@@ -272,7 +215,7 @@ class SectionIOTest extends SapphireTest
         $pageId = $this->idFromFixture('Page', 'ceo');
 
         // test single page flush
-        Config::inst()->update('SectionIO', 'sitetree_flush_strategy', 'single');
+        Config::inst()->update(SectionIO::class, 'sitetree_flush_strategy', 'single');
         $result = SectionIOTest_MySectionIO::flushSiteTree($pageId);
         $this->assertEquals(
             'obj.http.content-type ~ "text/html"'
@@ -282,7 +225,7 @@ class SectionIOTest extends SapphireTest
         );
 
         // test parents flush
-        Config::inst()->update('SectionIO', 'sitetree_flush_strategy', 'parents');
+        Config::inst()->update(SectionIO::class, 'sitetree_flush_strategy', 'parents');
         $result = SectionIOTest_MySectionIO::flushSiteTree($pageId);
         $this->assertEquals(
             'obj.http.content-type ~ "text/html"'
@@ -292,7 +235,7 @@ class SectionIOTest extends SapphireTest
         );
 
         // test all pages flush
-        Config::inst()->update('SectionIO', 'sitetree_flush_strategy', 'all');
+        Config::inst()->update(SectionIO::class, 'sitetree_flush_strategy', 'all');
         $result = SectionIOTest_MySectionIO::flushSiteTree($pageId);
         $this->assertEquals(
             'obj.http.content-type ~ "text/html"',
@@ -301,7 +244,7 @@ class SectionIOTest extends SapphireTest
         );
 
         // test whole site flush
-        Config::inst()->update('SectionIO', 'sitetree_flush_strategy', 'everything');
+        Config::inst()->update(SectionIO::class, 'sitetree_flush_strategy', 'everything');
         $result = SectionIOTest_MySectionIO::flushSiteTree($pageId);
         $this->assertEquals(
             'obj.http.x-url ~ /',
@@ -317,32 +260,16 @@ class SectionIOTest_MySectionIO extends SectionIO
     {
         $result = array();
         $urls = static::getUrls();
-        // config loaded successfully
-        if ($urls) {
+        if (count($urls) > 0) {
             foreach ($urls as $url) {
-
-                // get restful service object
-                $service = static::getService($url, $banExpression);
-
-                // prepare headers
-                $headers = static::getHeaders();
-
-                // prepare curl options
-                $options = static::getOptions();
-
-                // store data for return
+                
                 $data = array();
                 $data['url'] = $url;
                 $data['banExpression'] = $banExpression;
-                $data['headers'] = $headers;
-                $data['options'] = $options;
-                $data['service'] = $service;
                 $result[] = $data;
+                
             }
-        } else {
-            user_error('SectionIOTest_MySectionIO::performFlush :: no URLs loaded for ban.', E_USER_WARNING);
         }
-
         return $result;
     }
 }

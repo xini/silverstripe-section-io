@@ -1,0 +1,5 @@
+mappings:
+  SectionIO: Innoweb\SectionIO\SectionIO
+  SectionIOFileExtension: Innoweb\SectionIO\Extensions\SectionIOFileExtension
+  SectionIOSiteTreeExtension: Innoweb\SectionIO\Extensions\SectionIOSiteTreeExtension
+  SectionIOTest: Innoweb\SectionIO\Tests\SectionIOTest

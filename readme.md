@@ -1,10 +1,10 @@
 # SilverStripe Section.io integration (Varnish Cache)
 
-[![Build Status](http://img.shields.io/travis/xini/silverstripe-section-io.svg?style=flat-square)](https://travis-ci.org/xini/silverstripe-section-io)
-[![Code Quality](http://img.shields.io/scrutinizer/g/xini/silverstripe-section-io.svg?style=flat-square)](https://scrutinizer-ci.com/g/xini/silverstripe-section-io)
-[![Code Coverage](http://img.shields.io/scrutinizer/coverage/g/xini/silverstripe-section-io.svg?style=flat-square)](https://scrutinizer-ci.com/g/xini/silverstripe-section-io)
-[![Version](http://img.shields.io/packagist/v/xini/silverstripe-section-io.svg?style=flat-square)](https://packagist.org/packages/xini/silverstripe-section-io)
-[![License](http://img.shields.io/packagist/l/xini/silverstripe-section-io.svg?style=flat-square)](license.md)
+[![Build Status](https://travis-ci.org/innoweb/silverstripe-section-io.svg?branch=master)](https://travis-ci.org/innoweb/silverstripe-section-io)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/innoweb/silverstripe-section-io/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/innoweb/silverstripe-section-io/?branch=master)
+[![codecov](https://codecov.io/gh/innoweb/silverstripe-section-io/branch/master/graph/badge.svg)](https://codecov.io/gh/innoweb/silverstripe-section-io)
+[![Version](http://img.shields.io/packagist/v/innoweb/silverstripe-section-io.svg?style=flat-square)](https://packagist.org/packages/innoweb/silverstripe-section-io)
+[![License](http://img.shields.io/packagist/l/innoweb/silverstripe-section-io.svg?style=flat-square)](license.md)
 
 ## Overview
 
@@ -17,17 +17,15 @@ The module currently has the following functionality:
 * flush files (i.e. PDF, DOC, etc) from the cache onAfterWrite(). 
 * flush images and all resampled versions of those images onAfterWrite(). 
 
-This is still early stages, PRs welcome!  
-
 ## Requirements
 
-* SilverStripe CMS ~3.1
+* SilverStripe CMS ^4.0
 
 ## Installation
 
 Install the module using composer:
 ```
-composer require xini/silverstripe-section-io dev-master
+composer require innoweb/silverstripe-section-io dev-master
 ```
 
 Then run dev/build.
