@@ -17,9 +17,9 @@ class SectionIOTest extends SapphireTest
 {
     protected static $fixture_file = 'SectionIOTest.yml';
 
-    public function setUpOnce()
+    public function setUpBeforeClass()
     {
-        parent::setUpOnce();
+        parent::setUpBeforeClass();
 
         // add config values
         Config::modify()->set(SectionIO::class, 'flush_on_dev_build', true);
@@ -57,9 +57,9 @@ class SectionIOTest extends SapphireTest
         
     }
 
-    public function tearDownOnce()
+    public function tearDownAfterClass()
     {
-        parent::tearDownOnce();
+        parent::tearDownAfterClass();
         
         // re-add extensions
         File::add_extension('SectionIOFileExtension');
