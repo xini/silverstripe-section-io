@@ -1,12 +1,12 @@
 SilverStripe\Assets\Image:
   testImage:
-    FileFilename: SectionTest/test_image.png
+    FileFilename: test_image.png
     FileHash: 55b443b60176235ef09801153cca4e6da7494a0c
     Name: test_image.png
 
 SilverStripe\Assets\File:
   testFile:
-    FileFilename: SectionTest/test_document.pdf
+    FileFilename: test_document.pdf
     FileHash: 55b443b60176235ef09801153cca4e6da7494a0c
     Name: test_document.pdf
 
