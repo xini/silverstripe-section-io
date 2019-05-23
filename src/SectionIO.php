@@ -100,12 +100,10 @@ class SectionIO implements Flushable
                 $strategy = $smartStrategy;
             }
             switch ($strategy) {
-
                 case SectionIO::SITETREE_STRATEGY_SINGLE:
                     $exp = 'obj.http.content-type ~ "'.preg_quote('text/html').'"';
                     $exp .= ' && obj.http.x-url ~ "^'.preg_quote($sitetree->Link()).'$"';
                     break;
-
                 case SectionIO::SITETREE_STRATEGY_PARENTS:
                     $exp = 'obj.http.content-type ~ "'.preg_quote('text/html').'"';
                     $exp .= ' && (obj.http.x-url ~ "^'.preg_quote($sitetree->Link()).'$"';
@@ -116,24 +114,22 @@ class SectionIO implements Flushable
                     }
                     $exp .= ')';
                     break;
-
                 case SectionIO::SITETREE_STRATEGY_ALL:
                     $exp = 'obj.http.content-type ~ "'.preg_quote('text/html').'"';
                     break;
-
                 case 'everyting': // compatibility, old typo
                 case SectionIO::SITETREE_STRATEGY_EVERYTING:
                 default:
                     $exp = 'obj.http.x-url ~ /';
                     break;
-
             }
             return static::performFlush($exp);
         }
         return false;
     }
     
-    public static function flushURL($url) {
+    public static function flushURL($url)
+    {
         if ($url) {
             $exp = 'obj.http.x-url ~ "^'.preg_quote($url).'$"';
             return static::performFlush($exp);
@@ -147,9 +143,7 @@ class SectionIO implements Flushable
         $urls = static::getUrls();
         if (count($urls) > 0) {
             foreach ($urls as $url) {
-
                 $client = new GuzzleClient();
-                
                 $response = $client->request('POST', $url, [
                     'query' => [
                         'banExpression' => $banExpression,
@@ -167,7 +161,6 @@ class SectionIO implements Flushable
                     'http_errors' => false,
 //                    'debug' => fopen('d:\\workspace\\cairns-visitor-centre\\.log\\guzzle.log', "w+")
                 ]);
-                
                 if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 400) {
                     user_error('SectionIO::performFlush :: '.$response->getStatusCode().': '.$response->getBody(), E_USER_WARNING);
                     $success = $success && false;

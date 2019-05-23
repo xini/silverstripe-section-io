@@ -5,6 +5,7 @@ namespace Innoweb\SectionIO\Tests;
 use Innoweb\SectionIO\SectionIO;
 use Innoweb\SectionIO\Extensions\SectionIOFileExtension;
 use Innoweb\SectionIO\Extensions\SectionIOSiteTreeExtension;
+use Innoweb\SectionIO\Tests\SectionIOTest\CustomSectionIO;
 use SilverStripe\Assets\File;
 use SilverStripe\Assets\Image;
 use SilverStripe\CMS\Model\SiteTree;
@@ -51,7 +52,6 @@ class SectionIOTest extends SapphireTest
             $file = DataObject::get_by_id(File::class, $fileID);
             $file->setFromString(str_repeat('x', 1000000), $file->getFilename());
         }
-        
     }
 
     public static function tearDownAfterClass()
@@ -65,7 +65,7 @@ class SectionIOTest extends SapphireTest
 
     public function testFlushAll()
     {
-        $result = SectionIOTest_MySectionIO::flushAll();
+        $result = CustomSectionIO::flushAll();
 
         $this->assertCount(
             1,
@@ -86,12 +86,11 @@ class SectionIOTest extends SapphireTest
             $result[0]['banExpression'],
             'ban expression is correct'
         );
-
     }
 
     public function testFlush()
     {
-        $result = SectionIOTest_MySectionIO::flush();
+        $result = CustomSectionIO::flush();
 
         $this->assertCount(
             1,
@@ -115,7 +114,7 @@ class SectionIOTest extends SapphireTest
 
         // test deactivated flush on build
         Config::modify()->set(SectionIO::class, 'flush_on_dev_build', false);
-        $result = SectionIOTest_MySectionIO::flush();
+        $result = CustomSectionIO::flush();
         $this->assertNull(
             $result,
             'null returned if flush on build deactivated'
@@ -127,7 +126,7 @@ class SectionIOTest extends SapphireTest
         // add second application to config
         Config::modify()->set(SectionIO::class, 'application_id', '2546987,856954');
 
-        $result = SectionIOTest_MySectionIO::flushAll();
+        $result = CustomSectionIO::flushAll();
 
         $this->assertCount(
             2,
@@ -150,7 +149,7 @@ class SectionIOTest extends SapphireTest
         // add second application to config with spaces in csv
         Config::modify()->set(SectionIO::class, 'application_id', '741852, 369258');
 
-        $result = SectionIOTest_MySectionIO::flushAll();
+        $result = CustomSectionIO::flushAll();
 
         $this->assertCount(
             2,
@@ -175,7 +174,7 @@ class SectionIOTest extends SapphireTest
     {
         $imageId = $this->idFromFixture(Image::class, 'testImage');
 
-        $result = SectionIOTest_MySectionIO::flushImage($imageId);
+        $result = CustomSectionIO::flushImage($imageId);
         
         // ban expression
         $this->assertThat(
@@ -185,7 +184,6 @@ class SectionIOTest extends SapphireTest
                     .' || obj.http.x-url ~ "^/assets/SectionTest/test_image__[a-zA-Z0-9_]*\.png$"',
                 'obj.http.x-url ~ "^/assets/SectionTest/55b443b601/test_image\.png$"'
                     .' || obj.http.x-url ~ "^/assets/SectionTest/55b443b601/test_image__[a-zA-Z0-9_]*\.png$"'
-                
             ),
             'ban expression is correct'
         );
@@ -195,7 +193,7 @@ class SectionIOTest extends SapphireTest
     {
         $fileId = $this->idFromFixture(File::class, 'testFile');
 
-        $result = SectionIOTest_MySectionIO::flushFile($fileId);
+        $result = CustomSectionIO::flushFile($fileId);
 
         // ban expression
         $this->assertThat(
@@ -214,7 +212,7 @@ class SectionIOTest extends SapphireTest
 
         // test single page flush
         Config::modify()->set(SectionIO::class, 'sitetree_flush_strategy', 'single');
-        $result = SectionIOTest_MySectionIO::flushSiteTree($pageId);
+        $result = CustomSectionIO::flushSiteTree($pageId);
         $this->assertEquals(
             'obj.http.content-type ~ "text/html"'
             .' && obj.http.x-url ~ "^/about\-us/my\-staff/ceo/$"',
@@ -224,7 +222,7 @@ class SectionIOTest extends SapphireTest
 
         // test parents flush
         Config::modify()->set(SectionIO::class, 'sitetree_flush_strategy', 'parents');
-        $result = SectionIOTest_MySectionIO::flushSiteTree($pageId);
+        $result = CustomSectionIO::flushSiteTree($pageId);
         $this->assertEquals(
             'obj.http.content-type ~ "text/html"'
             .' && (obj.http.x-url ~ "^/about\-us/my\-staff/ceo/$" || obj.http.x-url ~ "^/about\-us/my\-staff/$" || obj.http.x-url ~ "^/about\-us/$")',
@@ -234,7 +232,7 @@ class SectionIOTest extends SapphireTest
 
         // test all pages flush
         Config::modify()->set(SectionIO::class, 'sitetree_flush_strategy', 'all');
-        $result = SectionIOTest_MySectionIO::flushSiteTree($pageId);
+        $result = CustomSectionIO::flushSiteTree($pageId);
         $this->assertEquals(
             'obj.http.content-type ~ "text/html"',
             $result[0]['banExpression'],
@@ -243,31 +241,11 @@ class SectionIOTest extends SapphireTest
 
         // test whole site flush
         Config::modify()->set(SectionIO::class, 'sitetree_flush_strategy', 'everything');
-        $result = SectionIOTest_MySectionIO::flushSiteTree($pageId);
+        $result = CustomSectionIO::flushSiteTree($pageId);
         $this->assertEquals(
             'obj.http.x-url ~ /',
             $result[0]['banExpression'],
             'ban expression is correct'
         );
-    }
-}
-
-class SectionIOTest_MySectionIO extends SectionIO
-{
-    protected static function performFlush($banExpression)
-    {
-        $result = array();
-        $urls = static::getUrls();
-        if (count($urls) > 0) {
-            foreach ($urls as $url) {
-                
-                $data = array();
-                $data['url'] = $url;
-                $data['banExpression'] = $banExpression;
-                $result[] = $data;
-                
-            }
-        }
-        return $result;
     }
 }
