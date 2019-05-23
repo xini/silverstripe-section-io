@@ -11,7 +11,7 @@ SilverStripe\Assets\Image:
 
 SilverStripe\Assets\File:
   testFile:
-    FileFilename: assets/SectionTest/test_document.pdf
+    FileFilename: SectionTest/test_document.pdf
     FileHash: 55b443b60176235ef09801153cca4e6da7494a0c
     Name: test_document.pdf
     ParentID: =>SilverStripe\Assets\Folder.folder1

@@ -12,6 +12,7 @@ use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\ORM\DataObject;
+use Page;
 
 class SectionIOTest extends SapphireTest
 {
@@ -183,7 +184,7 @@ class SectionIOTest extends SapphireTest
 
     public function testFlushImage()
     {
-        $imageId = $this->idFromFixture('Image', 'testImage');
+        $imageId = $this->idFromFixture(Image::class, 'testImage');
 
         $result = SectionIOTest_MySectionIO::flushImage($imageId);
 
@@ -198,7 +199,7 @@ class SectionIOTest extends SapphireTest
 
     public function testFlushFile()
     {
-        $fileId = $this->idFromFixture('File', 'testFile');
+        $fileId = $this->idFromFixture(File::class, 'testFile');
 
         $result = SectionIOTest_MySectionIO::flushFile($fileId);
 
@@ -212,7 +213,7 @@ class SectionIOTest extends SapphireTest
 
     public function testFlushSiteTree()
     {
-        $pageId = $this->idFromFixture('Page', 'ceo');
+        $pageId = $this->idFromFixture(Page::class, 'ceo');
 
         // test single page flush
         Config::modify()->set(SectionIO::class, 'sitetree_flush_strategy', 'single');
