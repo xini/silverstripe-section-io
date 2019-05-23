@@ -7,7 +7,6 @@ use Innoweb\SectionIO\Extensions\SectionIOFileExtension;
 use Innoweb\SectionIO\Extensions\SectionIOSiteTreeExtension;
 use SilverStripe\Assets\File;
 use SilverStripe\Assets\Image;
-use SilverStripe\Assets\Dev\TestAssetStore;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
@@ -43,7 +42,12 @@ class SectionIOTest extends SapphireTest
         parent::setUp();
         
         // Set backend root to /SectionTest
-        TestAssetStore::activate('SectionTest');
+        if (class_exists(SilverStripe\Assets\Dev\TestAssetStore::class)) {
+            SilverStripe\Assets\Dev\TestAssetStore::activate('SectionTest');
+        } else if (class_exists(SilverStripe\Assets\Tests\Storage\AssetStoreTest\TestAssetStore::class)) {
+            // fallback for SS 4.0
+            SilverStripe\Assets\Tests\Storage\AssetStoreTest\TestAssetStore::activate('SectionTest');
+        }
         
         // Create a test files for each of the fixture references
         $fileIDs = array_merge(
@@ -69,7 +73,12 @@ class SectionIOTest extends SapphireTest
 
     public function tearDown()
     {
-        TestAssetStore::reset();
+        if (class_exists(SilverStripe\Assets\Dev\TestAssetStore::class)) {
+            SilverStripe\Assets\Dev\TestAssetStore::reset();
+        } else if (class_exists(SilverStripe\Assets\Tests\Storage\AssetStoreTest\TestAssetStore::class)) {
+            // fallback for SS 4.0
+            SilverStripe\Assets\Tests\Storage\AssetStoreTest\TestAssetStore::reset();
+        }
         
         parent::tearDown();
     }
