@@ -19,6 +19,8 @@ class SectionIOTest extends SapphireTest
 
     public static function setUpBeforeClass()
     {
+        parent::setUpBeforeClass();
+        
         // add config values
         Config::modify()->set(SectionIO::class, 'flush_on_dev_build', true);
         Config::modify()->set(SectionIO::class, 'api_url', 'https://example.com');
@@ -55,6 +57,8 @@ class SectionIOTest extends SapphireTest
 
     public static function tearDownAfterClass()
     {
+        parent::tearDownAfterClass();
+        
         // re-add extensions
         File::add_extension('SectionIOFileExtension');
         SiteTree::add_extension('SectionIOSiteTreeExtension');
