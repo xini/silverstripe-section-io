@@ -41,14 +41,6 @@ class SectionIOTest extends SapphireTest
     {
         parent::setUp();
         
-        // Set backend root to /SectionTest
-        if (class_exists(SilverStripe\Assets\Dev\TestAssetStore::class)) {
-            SilverStripe\Assets\Dev\TestAssetStore::activate('SectionTest');
-        } else if (class_exists(SilverStripe\Assets\Tests\Storage\AssetStoreTest\TestAssetStore::class)) {
-            // fallback for SS 4.0
-            SilverStripe\Assets\Tests\Storage\AssetStoreTest\TestAssetStore::activate('SectionTest');
-        }
-        
         // Create a test files for each of the fixture references
         $fileIDs = array_merge(
             $this->allFixtureIDs(File::class),
@@ -69,18 +61,6 @@ class SectionIOTest extends SapphireTest
         SiteTree::add_extension(SectionIOSiteTreeExtension::class);
         
         parent::tearDownAfterClass();
-    }
-
-    public function tearDown()
-    {
-        if (class_exists(SilverStripe\Assets\Dev\TestAssetStore::class)) {
-            SilverStripe\Assets\Dev\TestAssetStore::reset();
-        } else if (class_exists(SilverStripe\Assets\Tests\Storage\AssetStoreTest\TestAssetStore::class)) {
-            // fallback for SS 4.0
-            SilverStripe\Assets\Tests\Storage\AssetStoreTest\TestAssetStore::reset();
-        }
-        
-        parent::tearDown();
     }
 
     public function testFlushAll()
